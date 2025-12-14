@@ -162,6 +162,30 @@ const authService = {
     }
     return registerResponse;
   },
+  // Send verification
+  async sendVerification() {
+    const sendVerificationResponse = await asyncWithTimeout(
+      account.createVerification(config.verificationEndpoint),
+      undefined,
+      'Failed to send verification email. Please try again.'
+    );
+    return sendVerificationResponse;
+  },
+  // Verify user's email
+  async verify(userId, secret) {
+    let verifyResponse;
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      verifyResponse = { success: true };
+    } else {
+      verifyResponse = await asyncWithTimeout(
+        account.updateVerification(userId, secret),
+        undefined,
+        'Verification failed. Please try again'
+      );
+    }
+    return verifyResponse;
+  },
   // Login
   async login(email, password) {
     let loginData;
@@ -179,7 +203,7 @@ const authService = {
     return loginData;
   },
   // Get logged in user
-  async getUser() {
+  async getUser(isOnMount=false) {
     let userData;
     if (config.stub) {
       await new Promise((res) => setTimeout(() => res(null), config.stubPause));
@@ -188,7 +212,9 @@ const authService = {
       userData = await asyncWithTimeout(
         account.get(),
         undefined,
-        'Failed to get user information. Please try again'
+        'Failed to get user information. Please try again',
+        undefined,
+        isOnMount ? ['User (role: guests) missing scopes (["account"])'] : undefined
       );
     }
 
@@ -203,6 +229,18 @@ const authService = {
         account.deleteSession('current'),
         undefined,
         'Logout failed. Please try again'
+      );
+    }
+  },
+  // Change user password
+  async updatePassword(newPassword, currentPassword) {
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+    } else {
+      await asyncWithTimeout(
+        account.updatePassword(newPassword, currentPassword),
+        undefined,
+        'Failed to change password. Please try again'
       );
     }
   }

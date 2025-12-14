@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useData } from '../contexts/dataContext';
+import { useData } from '../../contexts/dataContext';
 
 import { BaseTable } from './BaseTable';
 
@@ -7,11 +7,13 @@ export default function FieldsTable() {
   const { fieldTableData } = useData();
   const navigate = useNavigate();
   
-  console.log(fieldTableData);
-
   const openField = ({ href }) => {
     navigate(href);
   };
+
+  const deleteField = (row) => {
+    console.log('Wishlist - delete field from field table', row);
+  }
 
   const columns = [{
     key: 'fieldName',
@@ -36,6 +38,9 @@ export default function FieldsTable() {
       columns={columns}
       rows={fieldTableData}
       onClick={openField}
+      onClickDelete={deleteField}
+      initRowsPerPage={20}
+      rowsPerPageOptions={[]}
     />
   );
 }

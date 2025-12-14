@@ -1,4 +1,4 @@
-import { ID, Query } from 'appwrite';
+import { ID, Query, Permission, Role } from 'appwrite';
 
 import asyncWithTimeout from './serviceHelpers';
 import { config, database } from './appwrite';
@@ -450,15 +450,31 @@ const databaseService = {
   //     return { error: error.message };
   //   }
   // },
-  // // Create Documents
-  // async createDocument(colName, data, id = null) {
-  //   try {
-  //     return await asyncWithTimeout(database.createDocument(config.dbId, config.collIds[colName], id || undefined, data));
-  //   } catch (error) {
-  //     console.error('Error creating document:', error.message);
-  //     return { error: error.message };
-  //   }
-  // },
+  // Create Documents
+  async createDocument(collName, data, permissions=null, id = null) {
+    try {
+      // If permissions is not null it should be a user id. Use it to set permissions for the row
+      if (permissions !== null) {
+        permissions = [
+          Permission.read(Role.user(permissions)),    // Only this user can read
+          Permission.update(Role.user(permissions)),  // Only this user can update
+        ];
+      }
+
+      return await asyncWithTimeout(
+        database.createDocument(
+          config.dbId,
+          config.collIds[collName],
+          id || ID.unique(),
+          data,
+          permissions
+        )
+      );
+    } catch (error) {
+      console.error('Error creating document:', error.message);
+      return { error: error.message };
+    }
+  },
   // // Delete Document
   // async deleteDocument(colName, id) {
   //   try {
@@ -477,7 +493,7 @@ const databaseService = {
       await new Promise((res) => setTimeout(() => res(null), config.stubPause));
       initData = initDataStub[config.stub];
     } else {
-      initData = await asyncWithTimeout(database.listDocuments(
+      const dataResponse = await asyncWithTimeout(database.listDocuments(
         config.dbId, 
         config.collIds['users'],
         [
@@ -488,7 +504,7 @@ const databaseService = {
           ])
         ]
       ));
-      initData = initData.documents;
+      initData = dataResponse.documents;
     }
 
     return initData;
@@ -509,12 +525,15 @@ const databaseService = {
         scannerData = newScannerDataStub[newScannerID];
       } else {
         scannerData = await asyncWithTimeout(database.listDocuments(
-          config.dbId,
-          config.collIds[scannerCollId],
-          [
-            Query.equal(scannerIDAttrId, newScannerID)
-          ]
-        ));
+            config.dbId,
+            config.collIds[scannerCollId],
+            [
+              Query.equal(scannerIDAttrId, newScannerID)
+            ]
+          ),
+          undefined,
+          'An error occurred while trying to add this scanner. Please try again.'
+        );
       }
 
       if (scannerData.total === 0) {

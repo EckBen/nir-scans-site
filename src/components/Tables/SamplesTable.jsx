@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useData } from '../contexts/dataContext';
+import { useData } from '../../contexts/dataContext';
 
 import { BaseTable } from './BaseTable';
 
@@ -7,8 +7,6 @@ export default function SamplesTable() {
   const { sampleTableData } = useData();
   const navigate = useNavigate();
   
-  console.log(sampleTableData);
-
   const openSample = ({ href }) => {
     navigate(href);
   };
@@ -31,9 +29,10 @@ export default function SamplesTable() {
     <BaseTable
       initSortDirection='desc'
       columns={columns}
-      rows={sampleTableData}
+      rows={sampleTableData.concat(sampleTableData,sampleTableData,sampleTableData,sampleTableData,sampleTableData)}
       onClick={openSample}
-      deleteable={false}
+      initRowsPerPage={20}
+      rowsPerPageOptions={[]}
     />
   );
 }

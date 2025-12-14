@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 
 import databaseService from '../services/databaseService';
-import functionsService from '../services/functionsService';
+// import functionsService from '../services/functionsService';
 import { useAuth } from './authContext';
 import { useLoading } from './loadingContext';
 
@@ -104,27 +105,28 @@ export const DataProvider = ({ children }) => {
 
   const getNewSamples = async (currentScannerState) => {
     updateLoading(['newSamples'],[]);
-    const fetchScanners = currentScannerState.map(scannerObj => scannerObj.scannerID)
+    console.log('Stubbed out getNewSamples call', currentScannerState);
+    // const fetchScanners = currentScannerState.map(scannerObj => scannerObj.scannerID)
 
-    // Get the new samples
-    const results = await functionsService.getNewSamples(fetchScanners);
+    // // Get the new samples
+    // const results = await functionsService.getNewSamples(fetchScanners);
     
-    // Update the current information with the new samples
-    const newScanners = JSON.parse(JSON.stringify(currentScannerState));
-    for (const [scannerId, newSamples] of Object.entries(results.data)) {
-      const scannerIdx = newScanners.findIndex(s => s.scannerID === scannerId);
-      for (const sample of newSamples) {
-        // Add new sample or update existing sample (since it was updated)
-        const sampleIdx = newScanners[scannerIdx].samples.findIndex(s => s.sampleID === sample.sampleID);
-        if (sampleIdx >= 0) {
-          newScanners[scannerIdx].samples[sampleIdx] = sample;
-        } else {
-          newScanners[scannerIdx].samples.push(sample);
-        }
-      }
-    }
+    // // Update the current information with the new samples
+    // const newScanners = JSON.parse(JSON.stringify(currentScannerState));
+    // for (const [scannerId, newSamples] of Object.entries(results.data)) {
+    //   const scannerIdx = newScanners.findIndex(s => s.scannerID === scannerId);
+    //   for (const sample of newSamples) {
+    //     // Add new sample or update existing sample (since it was updated)
+    //     const sampleIdx = newScanners[scannerIdx].samples.findIndex(s => s.sampleID === sample.sampleID);
+    //     if (sampleIdx >= 0) {
+    //       newScanners[scannerIdx].samples[sampleIdx] = sample;
+    //     } else {
+    //       newScanners[scannerIdx].samples.push(sample);
+    //     }
+    //   }
+    // }
 
-    setScanners(newScanners);
+    // setScanners(newScanners);
 
     updateLoading([], ['newSamples']);
   };
@@ -145,27 +147,32 @@ export const DataProvider = ({ children }) => {
     return successful;
   };
 
-  // const removeScannerFromUserAccount = async (removeScannerID) => {
-  // !!!!! Make sure to include Alert/Confirmation
+  const removeScannerFromUserAccount = async (removeScannerID) => {
+    // !!!!! Make sure to include Alert/Confirmation
+    // !!!!! check current scanners to see if it is in the list
+    // !!!!! delete all scanner related data from current state, or wait until db is updated and get fresh query for user data
   
-    //   updateLoading(['removeScanner'],[]);
+    updateLoading(['removeScanner'],[]);
 
-  //   const currentScanners = scanners.map(s => s['$id']);
-  //   const newScannerData = await databaseService.addScannerToUserAccount(newScannerID, currentScanners, userData.id);
+    // const currentScanners = scanners.map(s => s['$id']);
+    // const newScannerData = await databaseService.addScannerToUserAccount(newScannerID, currentScanners, userData.id);
     
-  //   let successful;
-  //   if (newScannerData.error) {
-  //     // Handle error
-  //     successful = false;
-  //   } else {
-  //     // Handle adding new scanner data to state
-  //     setScanners([ ...scanners, newScannerData.data ]);
-  //     successful = true;
-  //   }
+    let successful = false;
+    console.log(removeScannerID);
 
-  //   updateLoading([], ['removeScanner']);
-  //   return successful;
-  // };
+    // let successful;
+    // if (newScannerData.error) {
+    //   // Handle error
+    //   successful = false;
+    // } else {
+    //   // Handle adding new scanner data to state
+    //   setScanners([ ...scanners, newScannerData.data ]);
+    //   successful = true;
+    // }
+
+    updateLoading([], ['removeScanner']);
+    return successful;
+  };
 
   const sampleTableData = useMemo(() => {
     const rows = [];
@@ -190,7 +197,8 @@ export const DataProvider = ({ children }) => {
     return rows;
   }, [scanners, plants]);
 
-  const getSampleModalContent = (sampleID) => {
+  const getSampleInformation = (sampleID) => {
+    if (scanners === null || plants === null) return null;
     try {
       const scanner = scanners.find(scanner => scanner.samples.some(sample => sample.sampleID === sampleID));
       const sample = scanner.samples.find(sample => sample.sampleID === sampleID);
@@ -250,7 +258,8 @@ export const DataProvider = ({ children }) => {
     return rows;
   }, [scanners, plants, fields]);
 
-  const getPlantModalContent = (plantID) => {
+  const getPlantInformation = (plantID) => {
+    if (plants === null) return null;
     try {
       const numericPlantID = parseInt(plantID);
       const plant = plants.find(p => p.plantID === numericPlantID);
@@ -333,7 +342,8 @@ export const DataProvider = ({ children }) => {
     return rows;
   }, [scanners, plants, fields]);
 
-  const getFieldModalContent = (fieldID) => {
+  const getFieldInformation = (fieldID) => {
+    if (fields === null) return null;
     try {
       const numericFieldID = parseInt(fieldID);
       const field = fields.find(f => f.fieldID === numericFieldID);
@@ -378,14 +388,19 @@ export const DataProvider = ({ children }) => {
       fields,
       plants,
       addScannerToUserAccount,
+      removeScannerFromUserAccount,
       sampleTableData,
-      getSampleModalContent,
+      getSampleInformation,
       plantTableData,
-      getPlantModalContent,
+      getPlantInformation,
       fieldTableData,
-      getFieldModalContent
+      getFieldInformation
     }}>{ children }</DataContext.Provider>
   );
 };
 
 export const useData = () => useContext(DataContext);
+
+DataProvider.propTypes = {
+  children: PropTypes.node,
+}

@@ -12,7 +12,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 
-import ScrollShadow from './ScrollShadow/ScrollShadow';
+import ScrollShadow from '../ScrollShadow/ScrollShadow';
 
 import { FaTrash } from "react-icons/fa";
 import { MdOpenInNew } from "react-icons/md";
@@ -73,11 +73,11 @@ EnhancedTableHead.propTypes = {
 
 
 
-export function BaseTable({ initSortDirection='asc', columns, rows, onClick, maxWidth=650, deleteable=true }) {
+export function BaseTable({ initSortDirection='asc', columns, rows, onClick, maxWidth=650, onClickDelete=false, initRowsPerPage=5, rowsPerPageOptions=[5,10,25] }) {
   const [order, setOrder] = React.useState(initSortDirection);
   const [orderBy, setOrderBy] = React.useState(columns[0].key);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(initRowsPerPage);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -140,14 +140,14 @@ export function BaseTable({ initSortDirection='asc', columns, rows, onClick, max
                           <IconButton aria-label="open">
                             <MdOpenInNew color='blue' size='20px' />
                           </IconButton>
-                          {deleteable ? (
+                          {onClickDelete === false ? (<></>) : (
                             <IconButton onClick={(e) => {
                               e.stopPropagation();
-                              console.log('Wishlist - delete table item')
+                              onClickDelete(row);
                             }} aria-label="delete">
                               <FaTrash color='red' size='20px' />
                             </IconButton>
-                          ) : (<></>)}
+                          )}
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -167,7 +167,7 @@ export function BaseTable({ initSortDirection='asc', columns, rows, onClick, max
           </ScrollShadow>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={rowsPerPageOptions}
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}
@@ -186,5 +186,7 @@ BaseTable.propTypes = {
   rows: PropTypes.array.isRequired,
   onClick: PropTypes.func.isRequired,
   maxWidth: PropTypes.number,
-  deleteable: PropTypes.bool
+  onClickDelete: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+  initRowsPerPage: PropTypes.number,
+  rowsPerPageOptions: PropTypes.array
 };

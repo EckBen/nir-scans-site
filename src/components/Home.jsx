@@ -6,18 +6,17 @@ import { IoIosQrScanner } from "react-icons/io";
 
 import AddScanner from './AddScanner';
 import Tile from './Tile';
+import CardWithTitle from './CardWithTitle';
 
 export default function Home() {
     const { scanners, addScannerToUserAccount } = useData();
     return (
-        <>
-            <h1 className='text-3xl mb-5'>Home</h1>
-
+        <div className='mt-5'>
             {(scanners === null || scanners.length === 0) ? (
-                <>
-                    <p>Add a scanner to your account to get started!</p>
-                    <AddScanner handleNewScanner={addScannerToUserAccount} />
-                </>
+                <CardWithTitle title='Welcome!'>
+                    <p className='mt-3 mb-5'>Add a scanner to your account to get started!</p>
+                    <div className='w-fit mx-auto'><AddScanner handleNewScanner={addScannerToUserAccount} /></div>
+                </CardWithTitle>
             ) : (
                 <div className='w-full max-w-2xl flex flex-wrap gap-8 justify-center'>
                     <Tile
@@ -51,6 +50,6 @@ export default function Home() {
                     />
                 </div>
             )}
-        </>
+        </div>
     );
 }

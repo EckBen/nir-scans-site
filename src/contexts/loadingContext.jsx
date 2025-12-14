@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 const LoadingContext = createContext();
 
 export const LoadingProvider = ({ children }) => {
-  const [loadingArray, setLoadingArray] = useState(['userAuth', 'userInfo', 'userData']);
+  const [loadingArray, setLoadingArray] = useState([]);
 
   const updateLoading = (newItems=[], removeItems=[]) => {
     setLoadingArray((prevState) => {

@@ -8,10 +8,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
 import Button from './Button';
 
-export default function AddScanner({ handleNewScanner }) {
+export default function RemoveScanner({ handleRemoveScanner }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [scannerId, setScannerId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [scannerId, setScannerId] = useState('');
 
   function handleClose() {
     setModalVisible(false);
@@ -27,7 +27,7 @@ export default function AddScanner({ handleNewScanner }) {
     if (pattern.test(scannerId)) {
       setIsLoading(true);
 
-      const wasSuccessful = await handleNewScanner(scannerId);
+      const wasSuccessful = await handleRemoveScanner(scannerId);
       if (wasSuccessful) {
         handleClose();
       }
@@ -48,7 +48,7 @@ export default function AddScanner({ handleNewScanner }) {
         <Slide in={modalVisible}>
           <div className='flex-1 justify-center items-center max-w-sm m-auto mt-[25vh]'>
             <div className='shadow-lg m-5 bg-white rounded-2xl p-9 flex flex-col gap-2 items-center'>
-              <p>Use the device identity to add a scanner to your account.</p>
+              <p>Use the device identity to remove a scanner from your account.</p>
               <TextField
                 placeholder='P#########'
                 label='Scanner ID'
@@ -66,11 +66,11 @@ export default function AddScanner({ handleNewScanner }) {
           </div>
         </Slide>
       </Modal>
-      <Button onClick={handleOpen} variant='small'>Add Scanner To Account</Button>
+      <Button onClick={handleOpen} variant='small'>Remove Scanner From Account</Button>
     </>
   );
 }
 
-AddScanner.propTypes = {
-  handleNewScanner: PropTypes.func
+RemoveScanner.propTypes = {
+  handleRemoveScanner: PropTypes.func
 };

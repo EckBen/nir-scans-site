@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useData } from '../contexts/dataContext';
+import { useData } from '../../contexts/dataContext';
 
 import { BaseTable } from './BaseTable';
 
@@ -7,11 +7,13 @@ export default function PlantsTable() {
   const { plantTableData } = useData();
   const navigate = useNavigate();
   
-  console.log(plantTableData);
-
   const openPlant = ({ href }) => {
     navigate(href);
   };
+
+  const deletePlant = (row) => {
+    console.log('Wishlist - delete plant from plant table', row);
+  }
 
   const columns = [{
     key: 'latestTimestamp',
@@ -36,6 +38,9 @@ export default function PlantsTable() {
       columns={columns}
       rows={plantTableData}
       onClick={openPlant}
+      onClickDelete={deletePlant}
+      initRowsPerPage={20}
+      rowsPerPageOptions={[]}
     />
   );
 }
