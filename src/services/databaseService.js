@@ -511,8 +511,8 @@ const databaseService = {
   },
   // Add scanner to user account and return the scanner data
   async addScannerToUserAccount(newScannerID, currentScanners, userId) {
-    const userCollId = 'users';
-    const scannerCollId = 'scanners';
+    const userCollId = config.collIds['users'];
+    const scannerCollId = config.collIds['scanners'];
     const scannerIDAttrId = 'scannerID';
     
     try {
@@ -558,6 +558,37 @@ const databaseService = {
     } catch (error) {
       console.error('Error adding scanner to user account:', error.message);
       return { error: error.message };
+    }
+  },
+  // Remove scanner from user account
+  async removeScannerFromUserAccount(scannerToRemoveID, currentScannerIDs, userId) {
+    try {
+      if (config.stub) {
+        await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      } else {
+        // Remove target scanner from the users' scanner list
+        const newScannersList = currentScannerIDs.filter(id => id !== scannerToRemoveID);
+
+        // Update DB with the new scanner list
+        await asyncWithTimeout(database.updateDocument(
+            config.dbId,
+            config.collIds['users'],
+            userId,
+            {
+              scanners: newScannersList
+            }
+          ),
+          undefined,
+          'An error occurred while trying to remove this scanner. Please try again.'
+        );
+      }
+
+      // True means successful
+      return true;
+    } catch (error) {
+      // False means failure
+      console.error('Error removing scanner from user account:', error.message);
+      return false;
     }
   }
 };

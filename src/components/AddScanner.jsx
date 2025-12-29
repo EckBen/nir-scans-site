@@ -29,6 +29,7 @@ export default function AddScanner({ handleNewScanner }) {
 
       const wasSuccessful = await handleNewScanner(scannerId);
       if (wasSuccessful) {
+        toast.success('Scanner added successfully!')
         handleClose();
       }
 

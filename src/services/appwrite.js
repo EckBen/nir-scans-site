@@ -5,6 +5,7 @@ const config = {
   // stub: 'eck_ben',          // fake1, eck_ben, or false
   stubPause: 1,         // 2000 or 1
   verificationEndpoint: 'http://localhost:5173/verify',
+  recoveryEndpoint: 'http://localhost:5173/recovery',
   endpoint: import.meta.env.VITE_APPWRITE_ENDPOINT,
   projectId: import.meta.env.VITE_APPWRITE_PROJECT_ID,
   functionId: import.meta.env.VITE_APPWRITE_FUNCTION_ID,

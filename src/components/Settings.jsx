@@ -13,7 +13,7 @@ export default function Settings() {
 
     return (    
       <CardWithTitle title='Settings'>
-        <div>
+        <div className='flex flex-col gap-3 mt-5 px-5'>
           <AddScanner handleNewScanner={addScannerToUserAccount} />
           <RemoveScanner handleRemoveScanner={removeScannerFromUserAccount} />
           <ChangePassword handleChangePassword={changePassword} />

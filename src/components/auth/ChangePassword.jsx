@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Slide from '@mui/material/Slide';
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
-import Button from './Button';
+import Button from '../Button';
 
 export default function ChangePassword({ handleChangePassword }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,6 +40,7 @@ export default function ChangePassword({ handleChangePassword }) {
 
     const wasSuccessful = await handleChangePassword(newPassword, currentPassword);
     if (wasSuccessful) {
+      toast.success('Password changed successfully!');
       handleClose();
     }
 
@@ -55,56 +56,58 @@ export default function ChangePassword({ handleChangePassword }) {
       >
         <Slide in={modalVisible}>
           <div className='flex-1 justify-center items-center max-w-sm m-auto mt-[25vh]'>
-            <div className='shadow-lg m-5 bg-white rounded-2xl p-9 flex flex-col gap-2 items-center'>
+            <div className='shadow-lg m-5 bg-white rounded-2xl p-9 flex flex-col items-center'>
               <p>Input your current password and the new password that you desire.</p>
               
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="currentPassword">
-                  Current Password
-                </label>
-                <input
-                  className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  type="password"
-                  placeholder="******************"
-                  value={currentPassword}
-                  onChange={e => setCurrentPassword(e.target.value)}
-                  id='currentPassword'
-                />
-              </div>
+              <div className='flex flex-col gap-3 mt-3 mb-5'>
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="currentPassword">
+                    Current Password
+                  </label>
+                  <input
+                    className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    type="password"
+                    placeholder="******************"
+                    value={currentPassword}
+                    onChange={e => setCurrentPassword(e.target.value)}
+                    id='currentPassword'
+                  />
+                </div>
 
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
-                  New Password
-                </label>
-                <input
-                  className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  type="password"
-                  placeholder="******************"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  id='newPassword'
-                />
-              </div>
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
+                    New Password
+                  </label>
+                  <input
+                    className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    type="password"
+                    placeholder="******************"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    id='newPassword'
+                  />
+                </div>
 
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmNewPassword">
-                  Confirm New Password
-                </label>
-                <input
-                  className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  type="password"
-                  placeholder="******************"
-                  value={confirmNewPassword}
-                  onChange={e => setConfirmNewPassword(e.target.value)}
-                  id='confirmNewPassword'
-                />
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmNewPassword">
+                    Confirm New Password
+                  </label>
+                  <input
+                    className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    type="password"
+                    placeholder="******************"
+                    value={confirmNewPassword}
+                    onChange={e => setConfirmNewPassword(e.target.value)}
+                    id='confirmNewPassword'
+                  />
+                </div>
               </div>
 
               <div className='flex gap-1.5'>
-                <Button onClick={handleSubmit} className='w-[115px] flex justify-center items-center'>
+                <Button onClick={handleSubmit} className='w-[115px] flex justify-center items-center !mb-0'>
                   {isLoading ? <CircularProgress  size='30px' style={{ color: 'white' }} /> : "Submit"}
                 </Button>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleClose} className='!mb-0'>Cancel</Button>
               </div>
             </div>
           </div>

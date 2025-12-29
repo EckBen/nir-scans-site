@@ -120,6 +120,28 @@ export const AuthProvider = ({ children }) => {
     return response?.error ? false : true;
   };
 
+  const sendRecoveryLink = async (email) => {
+    updateLoading(['sendRecoveryLink'], []);
+    
+    const response = await authService.sendRecoveryLink(email);
+
+    updateLoading([], ['sendRecoveryLink']);
+    return response?.error ? false : true;
+  };
+
+  const recover = async (searchParams, password) => {
+    updateLoading(['userRecover'], []);
+    
+    const urlParams = new URLSearchParams(searchParams);
+    const secret = urlParams.get('secret');
+    const userId = urlParams.get('userId');
+
+    const response = await authService.updateRecovery(userId, secret, password);
+
+    updateLoading([], ['userRecover']);
+    return response?.error ? false : true;
+  };
+
   return (
     <AuthContext.Provider value={{
       userAuth,
@@ -129,7 +151,9 @@ export const AuthProvider = ({ children }) => {
       resendVerification,
       getUser,
       verify,
-      changePassword
+      changePassword,
+      sendRecoveryLink,
+      recover
     }}>{ children }</AuthContext.Provider>
   );
 };

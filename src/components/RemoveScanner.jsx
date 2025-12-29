@@ -25,14 +25,16 @@ export default function RemoveScanner({ handleRemoveScanner }) {
   const handleSubmit = async () => {
     const pattern = /^P\d{9}$/;
     if (pattern.test(scannerId)) {
-      setIsLoading(true);
-
-      const wasSuccessful = await handleRemoveScanner(scannerId);
-      if (wasSuccessful) {
-        handleClose();
+      if (window.confirm('Are you sure that you want to remove this scanner? This action will delete all related samples and plants from your account and it cannot be undone.')) {
+        setIsLoading(true);
+  
+        const wasSuccessful = await handleRemoveScanner(scannerId);
+        if (wasSuccessful) {
+          handleClose();
+        }
+  
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     } else {
       toast.error('Id must match the pattern of "P#########"');
     }

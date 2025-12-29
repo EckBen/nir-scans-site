@@ -17,6 +17,7 @@ import Settings from './Settings';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Login from './auth/Login';
 import Verify from './auth/Verify';
+import Recovery from './auth/Recovery';
 import UnverifiedUser from './auth/UnverifiedUser';
 
 function toastIt() {
@@ -31,7 +32,7 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      await getUser();
+      await getUser(true);
       setInitialized(true);
     })();
   },[]);
@@ -52,6 +53,7 @@ export default function App() {
           {/* Public routes */}
           <Route index path="login" element={<Login />} />
           <Route index path="verify" element={<Verify />} />
+          <Route index path="recovery" element={<Recovery />} />
 
           {/* Protected routes - require authentication */}
           <Route

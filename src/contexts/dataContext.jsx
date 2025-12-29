@@ -58,6 +58,36 @@ const toDailyAverages = (dataArr, timestampKey, valueKey, keysToPassThrough=[]) 
   });
 };
 
+const getDataForUser = async (updateLoading, setUserData, setScanners, setFields, setPlants, getNewSamples) => {
+  updateLoading(['userData', 'newSamples'],[]);
+
+  const allCurrentData = await databaseService.getInitData();
+
+  if (allCurrentData?.error) {
+    // In case of error, everything gets set to null
+    setUserData(null);
+    setScanners(null);
+    setFields(null);
+    setPlants(null);
+    updateLoading([], ['userData', 'newSamples']);
+  } else {
+    // Store the new data in state
+    setUserData({
+      authID: allCurrentData[0].authID,
+      id: allCurrentData[0].$id,
+    });
+
+    setScanners(allCurrentData[0].scanners);
+    setFields(allCurrentData[0].fields);
+    setPlants(allCurrentData[0].plants);
+
+    // Get any new stuff from the trinamiX database in the background
+    await getNewSamples(allCurrentData[0].scanners);
+
+    updateLoading([],['userData']);
+  }
+};
+
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
@@ -72,33 +102,7 @@ export const DataProvider = ({ children }) => {
   useEffect(() => {
     (async () => {
       if (userAuth) {
-        updateLoading(['userData', 'newSamples'],[]);
-
-        const allCurrentData = await databaseService.getInitData();
-
-        if (allCurrentData?.error) {
-          // In case of error, everything gets set to null
-          setUserData(null);
-          setScanners(null);
-          setFields(null);
-          setPlants(null);
-          updateLoading([], ['userData', 'newSamples']);
-        } else {
-          // Store the new data in state
-          setUserData({
-            authID: allCurrentData[0].authID,
-            id: allCurrentData[0].$id,
-          });
-  
-          setScanners(allCurrentData[0].scanners);
-          setFields(allCurrentData[0].fields);
-          setPlants(allCurrentData[0].plants);
-
-          // Get any new stuff from the trinamiX database in the background
-          await getNewSamples(allCurrentData[0].scanners);
-
-          updateLoading([],['userData']);
-        }
+        await getDataForUser(updateLoading, setUserData, setScanners, setFields, setPlants, getNewSamples);
       }
     })();
   }, [userAuth]);
@@ -148,30 +152,27 @@ export const DataProvider = ({ children }) => {
   };
 
   const removeScannerFromUserAccount = async (removeScannerID) => {
-    // !!!!! Make sure to include Alert/Confirmation
-    // !!!!! check current scanners to see if it is in the list
-    // !!!!! delete all scanner related data from current state, or wait until db is updated and get fresh query for user data
+    // Find scanner in users' scanner list
+    const scannerToRemove = scanners.find(s => s['scannerID'] === removeScannerID);
+    if (scannerToRemove) {
+      updateLoading(['removeScanner'],[]);
+      
+      
+      const currentScanners = scanners.map(s => s['$id']);
+      const successful = await databaseService.removeScannerFromUserAccount(scannerToRemove['$id'], currentScanners, userData.id);
+      
+      if (successful) {
+        // Update all user data to remove scanner from local state
+        await getDataForUser(updateLoading, setUserData, setScanners, setFields, setPlants, getNewSamples);
+        toast.success('Successfully removed scanner from your account.');
+      }
   
-    updateLoading(['removeScanner'],[]);
-
-    // const currentScanners = scanners.map(s => s['$id']);
-    // const newScannerData = await databaseService.addScannerToUserAccount(newScannerID, currentScanners, userData.id);
-    
-    let successful = false;
-    console.log(removeScannerID);
-
-    // let successful;
-    // if (newScannerData.error) {
-    //   // Handle error
-    //   successful = false;
-    // } else {
-    //   // Handle adding new scanner data to state
-    //   setScanners([ ...scanners, newScannerData.data ]);
-    //   successful = true;
-    // }
-
-    updateLoading([], ['removeScanner']);
-    return successful;
+      updateLoading([], ['removeScanner']);
+      return successful;
+    } else {
+      toast.error('This scanner is not associated with your account.');
+      return false;
+    }
   };
 
   const sampleTableData = useMemo(() => {

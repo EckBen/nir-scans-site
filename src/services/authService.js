@@ -234,16 +234,49 @@ const authService = {
   },
   // Change user password
   async updatePassword(newPassword, currentPassword) {
+    let results;
     if (config.stub) {
       await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      results = { success: true };
     } else {
-      await asyncWithTimeout(
+      results = await asyncWithTimeout(
         account.updatePassword(newPassword, currentPassword),
         undefined,
         'Failed to change password. Please try again'
       );
     }
-  }
+    return results;
+  },
+  // Send user an account recovery link
+  async sendRecoveryLink(email) {
+    let results;
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      results = { success: true };
+    } else {
+      results = await asyncWithTimeout(
+        account.createRecovery(email, config.recoveryEndpoint),
+        undefined,
+        'Failed to send recovery link. Please try again'
+      );
+    }
+    return results;
+  },
+  // Recover the users' account
+  async updateRecovery(userId, secret, password) {
+    let recoveryResponse;
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      recoveryResponse = { success: true };
+    } else {
+      recoveryResponse = await asyncWithTimeout(
+        account.updateRecovery(userId, secret, password),
+        undefined,
+        'Recovery failed. Please try again'
+      );
+    }
+    return recoveryResponse;
+  },
 };
 
 export default authService;
