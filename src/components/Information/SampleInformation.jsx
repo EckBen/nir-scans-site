@@ -5,11 +5,12 @@ import { useData } from "../../contexts/dataContext";
 
 import Button from '../Button';
 import { BaseTable } from "../Tables/BaseTable";
+import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 
 export default function SampleInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getSampleInformation } = useData();
+    const { getSampleInformation, sampleTableData, plants } = useData();
     const information = getSampleInformation(params.sampleID);
     
     console.log(information);
@@ -73,14 +74,25 @@ export default function SampleInformation() {
                         <p className='font-bold'>Plants Containing Sample</p>
             
                         {information.plantsWithSample.length === 0 ? <></> :
-                            <div className='flex'>
-                                <Button
-                                    onClick={handleAddToPlant}
-                                    className='px-2 py-1 mt-2 ml-auto text-sm self-end'
-                                >
-                                    Add to a Plant
-                                </Button>
-                            </div>
+                            <CreateOrUpdate
+                                itemName='Sample'
+                                itemOptions={sampleTableData}
+                                itemIdKey='sampleID'
+                                groupName='Plant'
+                                groupOptions={plants}
+                                groupIdKey='plantID'
+                                openButton={
+                                    (handleOpen) =>
+                                        <div className='flex'>
+                                            <Button
+                                                onClick={handleOpen}
+                                                className='px-2 py-1 mt-2 ml-auto text-sm self-end'
+                                            >
+                                                Add to a Plant
+                                            </Button>
+                                        </div>
+                                }
+                            />
                         }
             
                         {information.plantsWithSample.length ? (

@@ -45,7 +45,7 @@ const userDataStub = {
     "passwordUpdate": "2025-08-14T20:03:39.856+00:00",
     "email": "eck_ben@yahoo.com",
     "phone": "+16073517150",
-    "emailVerification": false,
+    "emailVerification": true,
     "phoneVerification": false,
     "mfa": false,
     "prefs": {},

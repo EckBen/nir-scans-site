@@ -4,7 +4,7 @@ import { MdGridOn } from "react-icons/md";
 import { FaCog } from "react-icons/fa";
 import { IoIosQrScanner } from "react-icons/io";
 
-import AddScanner from './AddScanner';
+import AddScanner from './crudModals/AddScanner';
 import Tile from './Tile';
 import CardWithTitle from './CardWithTitle';
 

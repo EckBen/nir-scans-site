@@ -3,8 +3,8 @@ import { useAuth } from "../contexts/authContext";
 
 import CardWithTitle from './CardWithTitle';
 import Button from './Button';
-import AddScanner from './AddScanner';
-import RemoveScanner from './RemoveScanner';
+import AddScanner from './crudModals/AddScanner';
+import RemoveScanner from './crudModals/RemoveScanner';
 import ChangePassword from './auth/ChangePassword';
 
 export default function Settings() {

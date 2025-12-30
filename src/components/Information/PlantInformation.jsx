@@ -159,7 +159,7 @@ export default function PlantInformation() {
                                         onPress={handleAddToPlant}
                                         className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
                                     >
-                                        Add a Sample to a Plant
+                                        Add a Sample to this Plant
                                     </Button>
                                 }
     
@@ -178,7 +178,7 @@ export default function PlantInformation() {
                                             onPress={handleAddToPlant}
                                             className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
                                         >
-                                            Add a Sample to a Plant
+                                            Add a Sample to this Plant
                                         </Button>
                                     </div>
                                 )}

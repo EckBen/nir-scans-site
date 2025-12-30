@@ -6,7 +6,7 @@ import Slide from '@mui/material/Slide';
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
-import Button from './Button';
+import Button from '../Button';
 
 export default function RemoveScanner({ handleRemoveScanner }) {
   const [modalVisible, setModalVisible] = useState(false);
