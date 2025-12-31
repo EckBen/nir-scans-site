@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Slide, Modal, Chip } from '@mui/material';
 import { FaFilter } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
 
 import Button from '../Button';
+import { toast } from 'react-toastify';
 
 export default function CreateOrUpdate({
   openButton,
@@ -14,22 +15,29 @@ export default function CreateOrUpdate({
   groupName,
   groupOptions,
   groupIdKey,
-  groupObject=null
+  groupObject=null,
+  createFunction,
+  updateFunction,
+  autoInclude=null
 }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selection, setSelection] = useState(groupObject ? 'addTo' : '');
   const [selectedGroup, setSelectedGroup] = useState(groupObject);
   const [name, setName] = useState(groupObject ? groupObject.name : '');
-  const [newIncluded, setNewIncluded] = useState(groupObject ? groupObject[`${itemName.toLowerCase()}s`] : []);
+  const [newIncluded, setNewIncluded] = useState(groupObject ? groupObject[`${itemName.toLowerCase()}s`].map(itemObj => itemObj[itemIdKey]) : []);
   const [excludedFilter, setExcludedFilter] = useState('');
   const [includedFilter, setIncludedFilter] = useState('');
 
   const handleClose = () => {
+    if (groupObject) {
+      setNewIncluded(groupObject[`${itemName.toLowerCase()}s`].map(itemObj => itemObj[itemIdKey]));
+    } else {
+      setSelection('');
+      setSelectedGroup(null);
+      setName('');
+      setNewIncluded([]);
+    }
     setModalVisible(false);
-    setSelection('');
-    setSelectedGroup(null);
-    setName('');
-    setNewIncluded([]);
   }
 
   const handleOpen = () => {
@@ -37,6 +45,9 @@ export default function CreateOrUpdate({
   };
 
   const handleSelection = (newSelection) => {
+    if (newSelection === 'create' && autoInclude) {
+      setNewIncluded([autoInclude]);
+    }
     setSelection(newSelection);
   };
 
@@ -45,36 +56,47 @@ export default function CreateOrUpdate({
 
     setName(newSelectedGroup.name);
     setSelectedGroup(newSelectedGroup);
-    setNewIncluded(newSelectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]));
+
+    const groupIncluded = newSelectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]);
+    if (autoInclude) {
+      groupIncluded.push(autoInclude);
+    }
+    setNewIncluded(groupIncluded);
   };
 
-  const handleSubmit = () => {
-    console.group('Submit');
-    console.log('Item info: ', itemName, itemIdKey, itemOptions);
-    console.log('Group info: ', groupName, groupIdKey, groupOptions);
-    console.log('Selection: ', selection);
-    console.log('Selected group: ', selectedGroup);
-    console.log('Name: ', name);
-    console.log('New Included: ', newIncluded);
-    console.log('Changes: ');
-    
+  const handleSubmit = async () => {
+    let wasSuccessful;
+    let actionName;
     if (selectedGroup) {
-      const currentItems = selectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]);
-      const added = newIncluded.filter(newItem => !currentItems.includes(newItem));
-      const removed = currentItems.filter(currItem => !newIncluded.includes(currItem));
-      console.log('       Add: ', added);
-      console.log('    Remove: ', removed);
+      wasSuccessful = await updateFunction({ ...selectedGroup, [`${itemName.toLowerCase()}s`]: newIncluded });
+      actionName = 'updated';
     } else {
-      console.log('    Create new, no changes');
+      // Validate inputs...must have at least one item and a name
+      let cancel = false;
+      if (!name.trim()) {
+        toast.error(`A name is required to create a ${groupName.toLowerCase()}.`);
+        cancel = true;
+      }
+      if (newIncluded.length === 0) {
+        toast.error(`You must select at least one ${itemName.toLowerCase()} to create a ${groupName.toLowerCase()}.`);
+        cancel = true;
+      }
+
+      if (cancel) return;
+
+      wasSuccessful = await createFunction(name, newIncluded);
+      actionName = 'created';
     }
     
-    console.groupEnd('Submit');
+    if (wasSuccessful) {
+      toast.success(`${groupName} ${actionName} successfully!`);
+      handleClose();
+    }
   };
 
   const generateChipsColumn = (items, handleClick, filterStateValue, filterSetStateFn, showNothing) => {
     let renderItems = items.filter(item => item.includes(filterStateValue));
     if (itemName === 'Sample') {
-      // add timestamp
       renderItems = renderItems.map(itemId => {
         const itemObj = itemOptions.find(opt => opt[itemIdKey] === itemId);
         return {
@@ -131,6 +153,52 @@ export default function CreateOrUpdate({
       </div>
     );
   };
+
+  const generateChangeList = () => {
+    let currentItems = [];
+    if (selectedGroup) {
+      currentItems = selectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]);
+    }
+
+    const added = newIncluded.filter(newItem => !currentItems.includes(newItem));
+    const removed = currentItems.filter(currItem => !newIncluded.includes(currItem));
+
+    if (added.length === 0 && removed.length === 0) {
+      return <></>;
+    }
+    
+    return (
+      <div>
+        <h4 className='underline text-black text-lg text-center mt-2'>Change List</h4>
+
+        <div>
+          {added.length ? (
+            <>
+              <h5 className='font-bold'>Adding:</h5>
+              <ul>
+                {added.map(id => <li key={id} className='ml-4'>...{id.slice(-7)}</li>)}
+              </ul>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
+
+        <div>
+          {removed.length ? (
+            <>
+              <h5 className='font-bold'>Removing:</h5>
+              <ul>
+                {removed.map(id => <li key={id} className='ml-4'>...{id.slice(-7)}</li>)}
+              </ul>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
+      </div>
+    );
+  };
   
   const moveToIncluded = (newItem) => {
     setNewIncluded([...newIncluded, newItem]);
@@ -163,13 +231,20 @@ export default function CreateOrUpdate({
                           id="item-select"
                           value={selectedGroup ? selectedGroup[groupIdKey] : ''}
                           onChange={handleSelectGroup}
+                          disabled={Boolean(groupObject)}
                         >
                           <option disabled value=''> -- Select -- </option>
-                          {groupOptions.map(opt =>
-                            <option key={opt[groupIdKey]} value={opt[groupIdKey]}>
-                              {opt.name}
-                            </option>
-                          )}
+                          {groupOptions.map(opt => {
+                            if (opt.samples.some(s => s.sampleID === autoInclude)) {
+                              return <React.Fragment key={opt[groupIdKey]}></React.Fragment>;
+                            } else {
+                              return (
+                                <option key={opt[groupIdKey]} value={opt[groupIdKey]}>
+                                  {opt.name}
+                                </option>
+                              );
+                            }
+                          })}
                         </select>
                       </>
                     ) : (
@@ -204,6 +279,10 @@ export default function CreateOrUpdate({
                     </div>
             
                     {generateChipsColumn(newIncluded, removeFromIncluded, includedFilter, setIncludedFilter, selection === 'addTo' && selectedGroup === null)}
+                  </div>
+
+                  <div>
+                    {generateChangeList()}
                   </div>
                   
                   <div className='flex justify-end mt-4 gap-2'>
@@ -247,4 +326,7 @@ CreateOrUpdate.propTypes = {
   groupOptions: PropTypes.array,
   groupIdKey: PropTypes.string,
   groupObject: PropTypes.object,
+  createFunction: PropTypes.func,
+  updateFunction: PropTypes.func,
+  autoInclude: PropTypes.string,
 };

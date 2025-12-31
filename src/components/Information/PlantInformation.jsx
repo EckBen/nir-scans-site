@@ -6,12 +6,13 @@ import { Collapse } from "@mui/material";
 import { useData } from "../../contexts/dataContext";
 
 import Button from '../Button';
+import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 import { BaseTable } from "../Tables/BaseTable";
 
 export default function PlantInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getPlantInformation } = useData();
+    const { getPlantInformation, sampleTableData, plants, updatePlant } = useData();
     const information = getPlantInformation(params.plantID);
     
     console.log(information);
@@ -56,10 +57,6 @@ export default function PlantInformation() {
 
     const handleDeleteFromPlant = (row) => {
         console.log('wishlist: delete sample from plant', row);
-    };
-
-    const handleAddToPlant = () => {
-        console.log('wishlist: add a sample to plant')
     };
 
     const sampleTableColumns = [{
@@ -155,12 +152,26 @@ export default function PlantInformation() {
                                 <p className='font-bold'>Samples in Plant</p>
     
                                 {information.samplesTableData.length === 0 ? <></> :
-                                    <Button
-                                        onPress={handleAddToPlant}
-                                        className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
-                                    >
-                                        Add a Sample to this Plant
-                                    </Button>
+                                    <CreateOrUpdate
+                                        itemName='Sample'
+                                        itemOptions={sampleTableData}
+                                        itemIdKey='sampleID'
+                                        groupName='Plant'
+                                        groupOptions={plants}
+                                        groupIdKey='plantID'
+                                        openButton={
+                                            (handleOpen) =>
+                                                <Button
+                                                    onClick={handleOpen}
+                                                    className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
+                                                >
+                                                    Add a Sample to this Plant
+                                                </Button>
+                                        }
+                                        createFunction={() => {}}
+                                        updateFunction={updatePlant}
+                                        groupObject={plants.find(p => p.plantID === information.plantID)}
+                                    />
                                 }
     
                                 {information.samplesTableData.length ? (
@@ -174,12 +185,26 @@ export default function PlantInformation() {
                                 ) : (
                                     <div className='mt-2.5 text-center'>
                                         <p className='italic text-gray-500'>There are no samples in this plant.</p>
-                                        <Button
-                                            onPress={handleAddToPlant}
-                                            className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
-                                        >
-                                            Add a Sample to this Plant
-                                        </Button>
+                                        <CreateOrUpdate
+                                            itemName='Sample'
+                                            itemOptions={sampleTableData}
+                                            itemIdKey='sampleID'
+                                            groupName='Plant'
+                                            groupOptions={plants}
+                                            groupIdKey='plantID'
+                                            openButton={
+                                                (handleOpen) =>
+                                                    <Button
+                                                        onClick={handleOpen}
+                                                        className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
+                                                    >
+                                                        Add a Sample to this Plant
+                                                    </Button>
+                                            }
+                                            createFunction={() => {}}
+                                            updateFunction={updatePlant}
+                                            groupObject={plants.find(p => p.plantID === information.plantID)}
+                                        />
                                     </div>
                                 )}
                             </div>

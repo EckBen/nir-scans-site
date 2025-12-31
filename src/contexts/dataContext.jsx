@@ -73,16 +73,16 @@ const getDataForUser = async (updateLoading, setUserData, setScanners, setFields
   } else {
     // Store the new data in state
     setUserData({
-      authID: allCurrentData[0].authID,
-      id: allCurrentData[0].$id,
+      authID: allCurrentData.authID,
+      id: allCurrentData.$id,
     });
 
-    setScanners(allCurrentData[0].scanners);
-    setFields(allCurrentData[0].fields);
-    setPlants(allCurrentData[0].plants);
+    setScanners(allCurrentData.scanners);
+    setFields(allCurrentData.fields);
+    setPlants(allCurrentData.plants);
 
     // Get any new stuff from the trinamiX database in the background
-    await getNewSamples(allCurrentData[0].scanners);
+    await getNewSamples(allCurrentData.scanners);
 
     updateLoading([],['userData']);
   }
@@ -205,26 +205,17 @@ export const DataProvider = ({ children }) => {
       const sample = scanner.samples.find(sample => sample.sampleID === sampleID);
       const plantsWithSample = plants.filter(plant => plant.samples.some(s => s.sampleID === sampleID));
 
-      // const x = plantsWithSample.map(p => ({ name: p.name, plantID: p.plantID, numSamples: p.samples.length }))
-
       return {
         timestamp: timeStampFormatter.format(new Date(sample.timestamp)).replace(',',''),
         sampleID: sample.sampleID,
         scannerID: scanner.scannerID,
         modelResult: sample.modelResult,
         measurementIDs: sample.measurementIds,
-        // plantsWithSample: x.concat(x).concat(x).concat(x).concat(x)
         plantsWithSample: plantsWithSample.map(p => ({ name: p.name, plantID: p.plantID, numSamples: p.samples.length }))
       };
     } catch (e) {
       console.error(e);
       toast.error('Unable to locate sample data.');
-      // Toast.show({
-      //   type: 'error',
-      //   text1: 'Unable to locate sample data.',
-      //   visibilityTime: 3000,
-      //   autoHide: true
-      // });
       return null;
     }
   };
@@ -289,6 +280,87 @@ export const DataProvider = ({ children }) => {
       //   autoHide: true
       // });
       return null;
+    }
+  };
+
+  const createNewPlant = async (name, sampleIDs) => {
+    if (scanners === null || plants === null) return false;
+    try {
+      // Convert list of sampleIDs to sample objects
+      const newSamples = sampleIDs.map(sampleID => {
+        const scanner = scanners.find(scanner => scanner.samples.some(sample => sample.sampleID === sampleID));
+        const sample = scanner.samples.find(sample => sample.sampleID === sampleID);
+        return sample;
+      });
+
+      const results = await databaseService.createDocument(
+        'plants',
+        {
+          name,
+          plantID: Date.now(),
+          samples: newSamples.map(s => s['$id'])
+        },
+        userData.authID
+      );
+
+      // Finish by editing plants state and handling errors
+      let successful;
+      if (results.error) {
+        // Handle error
+        successful = false;
+      } else {
+        // Handle adding to plants state
+        const newPlants = JSON.parse(JSON.stringify(plants));
+        newPlants.push(results);
+        setPlants(newPlants);
+        successful = true;
+      }
+      return successful;
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to create plant.');
+      return false;
+    }
+  };
+
+  const updatePlant = async (newPlantObj) => {
+    if (scanners === null || plants === null) return false;
+    try {
+      // Convert list of sampleIDs to sample objects
+      const newSamples = newPlantObj.samples.map(sampleID => {
+        const scanner = scanners.find(scanner => scanner.samples.some(sample => sample.sampleID === sampleID));
+        const sample = scanner.samples.find(sample => sample.sampleID === sampleID);
+        return sample;
+      });
+      
+      // Update plant in database
+      const results = await databaseService.updateDocument(
+        'plants',
+        newPlantObj['$id'],
+        {
+          name: newPlantObj.name,
+          plantID: newPlantObj.plantID,
+          samples: newSamples.map(s => s['$id'])
+        }
+      );
+      let successful;
+      if (results.error) {
+        // Handle error
+        successful = false;
+      } else {
+        // Handle updating plant in state
+        newPlantObj.samples = newSamples;
+        const plantObjIndex = plants.findIndex(plant => plant.plantID === newPlantObj.plantID);
+        const newPlants = JSON.parse(JSON.stringify(plants));
+        newPlants[plantObjIndex] = newPlantObj;
+        setPlants(newPlants);
+        successful = true;
+      }
+      return successful;
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to update plant.');
+      return false;
     }
   };
 
@@ -394,6 +466,8 @@ export const DataProvider = ({ children }) => {
       getSampleInformation,
       plantTableData,
       getPlantInformation,
+      createNewPlant,
+      updatePlant,
       fieldTableData,
       getFieldInformation
     }}>{ children }</DataContext.Provider>

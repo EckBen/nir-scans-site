@@ -441,23 +441,30 @@ const databaseService = {
   //     return { error: error.message };
   //   }
   // },
-  // // Update documents
-  // async updateDocument(colName, id, data) {
-  //   try {
-  //     return await asyncWithTimeout(database.updateDocument(config.dbId, config.collIds[colName], id, data));
-  //   } catch (error) {
-  //     console.error('Error updating document:', error.message);
-  //     return { error: error.message };
-  //   }
-  // },
+  // Update documents
+  async updateDocument(collName, id, data) {
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      return { success: true, stubbed: true };
+    } else {
+      try {
+        return await asyncWithTimeout(database.updateDocument(config.dbId, config.collIds[collName], id, data));
+      } catch (error) {
+        console.error('Error updating document:', error.message);
+        return { error: error.message };
+      }
+    }
+  },
   // Create Documents
-  async createDocument(collName, data, permissions=null, id = null) {
+  async createDocument(collName, data, authId=null, id = null) {
     try {
       // If permissions is not null it should be a user id. Use it to set permissions for the row
-      if (permissions !== null) {
+      let permissions = null;
+      if (authId !== null) {
         permissions = [
-          Permission.read(Role.user(permissions)),    // Only this user can read
-          Permission.update(Role.user(permissions)),  // Only this user can update
+          Permission.read(Role.user(authId)),    // Only this user can read
+          Permission.update(Role.user(authId)),  // Only this user can update
+          Permission.delete(Role.user(authId)),  // Only this user can delete
         ];
       }
 
@@ -493,18 +500,49 @@ const databaseService = {
       await new Promise((res) => setTimeout(() => res(null), config.stubPause));
       initData = initDataStub[config.stub];
     } else {
-      const dataResponse = await asyncWithTimeout(database.listDocuments(
-        config.dbId, 
-        config.collIds['users'],
-        [
-          Query.select([
-            'scanners.samples.*',
-            'fields.plants.$id',
-            'plants.samples.$id'
-          ])
-        ]
-      ));
-      initData = dataResponse.documents;
+      try {
+        // Query for data. Must do tables with row security separately
+        const [userWithScannersResponse, plantsResponse, fieldsResponse] = await Promise.all([
+          asyncWithTimeout(database.listDocuments(
+            config.dbId, 
+            config.collIds['users'],
+            [
+              Query.select([
+                'scanners.samples.*',
+                // 'fields.plants.$id',
+                // 'plants.samples.$id'
+              ])
+            ]
+          )),
+          asyncWithTimeout(database.listDocuments(
+            config.dbId, 
+            config.collIds['plants'],
+            [
+              Query.select([
+                'samples.sampleID'
+              ])
+            ]
+          )),
+          asyncWithTimeout(database.listDocuments(
+            config.dbId, 
+            config.collIds['fields'],
+            [
+              Query.select([
+                'plants.$id',
+              ])
+            ]
+          ))
+        ]);
+
+        initData = {
+          ...userWithScannersResponse.documents[0],
+          plants: plantsResponse.documents,
+          fields: fieldsResponse.documents
+        };
+      } catch (error) {
+        console.error(error);
+        initData = { error: error.message };
+      }
     }
 
     return initData;

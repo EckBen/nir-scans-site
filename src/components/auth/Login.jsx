@@ -109,6 +109,7 @@ export default function Login() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             id='email'
+            onKeyDown={(e) => e.key === 'Enter' ? handleAuth() : null}
           />
         </div>
         <div className="mb-6">
@@ -122,6 +123,7 @@ export default function Login() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             id='password'
+            onKeyDown={(e) => e.key === 'Enter' ? handleAuth() : null}
           />
         </div>
 
@@ -137,6 +139,7 @@ export default function Login() {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               id='confirmPassword'
+              onKeyDown={(e) => e.key === 'Enter' ? handleAuth() : null}
             />
           </div>
         }

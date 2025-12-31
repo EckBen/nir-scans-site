@@ -19,8 +19,8 @@ export default async function asyncWithTimeout(
   } catch (err) {
     if (!ignoreErrors.includes(err.message)) {
       console.error(err);
-      toast.error(errorMsg, { ...toastProps });
+      toast.error(errorMsg || err.message, { ...toastProps });
     }
-    return { error: errorMsg };
+    return { error: errorMsg || err.message };
   }
 }

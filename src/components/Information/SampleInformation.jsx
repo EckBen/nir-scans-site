@@ -10,7 +10,7 @@ import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 export default function SampleInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getSampleInformation, sampleTableData, plants } = useData();
+    const { getSampleInformation, sampleTableData, plants, createNewPlant, updatePlant } = useData();
     const information = getSampleInformation(params.sampleID);
     
     console.log(information);
@@ -21,10 +21,6 @@ export default function SampleInformation() {
 
     const handleDeleteFromPlant = (row) => {
         console.log('wishlist: delete sample from plant', row);
-    };
-
-    const handleAddToPlant = () => {
-        console.log('wishlist: add sample to plants')
     };
 
     const plantTableColumns = [{
@@ -92,6 +88,9 @@ export default function SampleInformation() {
                                             </Button>
                                         </div>
                                 }
+                                createFunction={createNewPlant}
+                                updateFunction={updatePlant}
+                                autoInclude={information.sampleID}
                             />
                         }
             
@@ -107,10 +106,24 @@ export default function SampleInformation() {
                         ) : (
                             <div className='mt-2.5 text-center'>
                                 <p className='italic text-base text-gray-500'>This sample is not in any plants.</p>
-                                <Button
-                                    onClick={handleAddToPlant}
-                                    className='px-3 py-2 mt-3 text-sm'
-                                >Add to a Plant</Button>
+                                <CreateOrUpdate
+                                    itemName='Sample'
+                                    itemOptions={sampleTableData}
+                                    itemIdKey='sampleID'
+                                    groupName='Plant'
+                                    groupOptions={plants}
+                                    groupIdKey='plantID'
+                                    openButton={
+                                        (handleOpen) =>
+                                            <Button
+                                                onClick={handleOpen}
+                                                className='px-3 py-2 mt-3 text-sm'
+                                            >Add to a Plant</Button>
+                                    }
+                                    createFunction={createNewPlant}
+                                    updateFunction={updatePlant}
+                                    autoInclude={information.sampleID}
+                                />
                             </div>
                         )}
                     </>
