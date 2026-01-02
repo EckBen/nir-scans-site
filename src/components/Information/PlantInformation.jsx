@@ -12,11 +12,17 @@ import { BaseTable } from "../Tables/BaseTable";
 export default function PlantInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getPlantInformation, sampleTableData, plants, updatePlant } = useData();
+    const {
+        getPlantInformation,
+        sampleTableData,
+        plants,
+        updatePlant,
+        fields,
+        createNewField,
+        updateField
+    } = useData();
     const information = getPlantInformation(params.plantID);
     
-    console.log(information);
-
     const [showFieldTable, setShowFieldTable] = useState(false);
     const [showSampleTable, setShowSampleTable] = useState(false);
 
@@ -30,10 +36,6 @@ export default function PlantInformation() {
     
     const handleDeleteFromField = (row) => {
         console.log('wishlist: delete plant from field', row);
-    };
-
-    const handleAddToField = () => {
-        console.log('wishlist: add plant to field')
     };
 
     const fieldTableColumns = [{
@@ -116,12 +118,29 @@ export default function PlantInformation() {
                                 <div className='h-[1px] w-4/5 bg-gray-300 mx-auto my-3' />
                                 <p className='font-bold'>Fields Containing Plant</p>
                                 {information.fieldsTableData.length === 0 ? <></> :
-                                    <Button
-                                        onClick={handleAddToField}
-                                        className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
-                                    >
-                                        Add to a Field
-                                    </Button>
+                                    <CreateOrUpdate
+                                        itemName='Plant'
+                                        itemOptions={plants}
+                                        itemIdKey='plantID'
+                                        itemLabelKey='name'
+                                        groupName='Field'
+                                        groupOptions={fields}
+                                        groupIdKey='fieldID'
+                                        openButton={
+                                            (handleOpen) =>
+                                                <div className='flex'>
+                                                    <Button
+                                                        onClick={handleOpen}
+                                                        className='px-2 py-1 mt-2 ml-auto text-sm self-end'
+                                                    >
+                                                        Add to a Field
+                                                    </Button>
+                                                </div>
+                                        }
+                                        createFunction={createNewField}
+                                        updateFunction={updateField}
+                                        autoInclude={information.plantID}
+                                    />
                                 }
     
                                 {information.fieldsTableData.length ? (
@@ -135,12 +154,29 @@ export default function PlantInformation() {
                                 ) : (
                                     <div className='mt-2.5 text-center'>
                                         <p className='italic text-gray-500'>This plant is not in any fields.</p>
-                                        <Button
-                                            onClick={handleAddToField}
-                                            className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
-                                        >
-                                            Add to a Field
-                                        </Button>
+                                        <CreateOrUpdate
+                                            itemName='Plant'
+                                            itemOptions={plants}
+                                            itemIdKey='plantID'
+                                            itemLabelKey='name'
+                                            groupName='Field'
+                                            groupOptions={fields}
+                                            groupIdKey='fieldID'
+                                            openButton={
+                                                (handleOpen) =>
+                                                    <div className='flex'>
+                                                        <Button
+                                                            onClick={handleOpen}
+                                                            className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
+                                                        >
+                                                            Add to a Field
+                                                        </Button>
+                                                    </div>
+                                            }
+                                            createFunction={createNewField}
+                                            updateFunction={updateField}
+                                            autoInclude={information.plantID}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -156,6 +192,7 @@ export default function PlantInformation() {
                                         itemName='Sample'
                                         itemOptions={sampleTableData}
                                         itemIdKey='sampleID'
+                                        itemLabelKey='sampleID'
                                         groupName='Plant'
                                         groupOptions={plants}
                                         groupIdKey='plantID'
@@ -189,6 +226,7 @@ export default function PlantInformation() {
                                             itemName='Sample'
                                             itemOptions={sampleTableData}
                                             itemIdKey='sampleID'
+                                            itemLabelKey='sampleID'
                                             groupName='Plant'
                                             groupOptions={plants}
                                             groupIdKey='plantID'

@@ -13,8 +13,6 @@ export default function SampleInformation() {
     const { getSampleInformation, sampleTableData, plants, createNewPlant, updatePlant } = useData();
     const information = getSampleInformation(params.sampleID);
     
-    console.log(information);
-
     const openPlant = (row) => {
         navigate(`/plants/${row.plantID}`);
     };
@@ -74,6 +72,7 @@ export default function SampleInformation() {
                                 itemName='Sample'
                                 itemOptions={sampleTableData}
                                 itemIdKey='sampleID'
+                                itemLabelKey='sampleID'
                                 groupName='Plant'
                                 groupOptions={plants}
                                 groupIdKey='plantID'
@@ -110,6 +109,7 @@ export default function SampleInformation() {
                                     itemName='Sample'
                                     itemOptions={sampleTableData}
                                     itemIdKey='sampleID'
+                                    itemLabelKey='sampleID'
                                     groupName='Plant'
                                     groupOptions={plants}
                                     groupIdKey='plantID'

@@ -12,6 +12,7 @@ export default function CreateOrUpdate({
   itemName,
   itemOptions,
   itemIdKey,
+  itemLabelKey,
   groupName,
   groupOptions,
   groupIdKey,
@@ -95,18 +96,20 @@ export default function CreateOrUpdate({
   };
 
   const generateChipsColumn = (items, handleClick, filterStateValue, filterSetStateFn, showNothing) => {
-    let renderItems = items.filter(item => item.includes(filterStateValue));
+    let renderItems = [];
+    const filteredItemObjs = itemOptions.filter(opt => items.includes(opt[itemIdKey]) && (filterStateValue === '' || !opt[itemLabelKey].includes(filterStateValue)));
     if (itemName === 'Sample') {
-      renderItems = renderItems.map(itemId => {
-        const itemObj = itemOptions.find(opt => opt[itemIdKey] === itemId);
-        return {
-          label: `...${itemId.slice(-4)} (${itemObj.timestamp})`,
-          value: itemId
-        };
-      });
+      renderItems = filteredItemObjs.map(itemObj => ({
+        label: `...${itemObj[itemLabelKey].slice(-4)} (${itemObj.timestamp})`,
+        value: itemObj[itemIdKey]
+      }));
     } else {
-      renderItems = renderItems.map(itemId => ({ value: itemId, label: '...' + itemId.slice(-7) }))
+      renderItems = filteredItemObjs.map(itemObj => ({
+        label: `${itemObj[itemLabelKey].slice(0,10)}${itemObj[itemLabelKey].length > 10 ? '...' : ''} (...${String(itemObj[itemIdKey]).slice(-4)})`,
+        value: itemObj[itemIdKey]
+      }));
     }
+
     return (
       <div className='flex flex-col min-h-36 max-h-[50vh] w-[calc(50%-16px)] overflow-y-auto border border-gray-500'>
         {showNothing ?
@@ -155,18 +158,21 @@ export default function CreateOrUpdate({
   };
 
   const generateChangeList = () => {
-    let currentItems = [];
+    let currentItemIDs = [];
     if (selectedGroup) {
-      currentItems = selectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]);
+      currentItemIDs = selectedGroup[`${itemName.toLowerCase()}s`].map(item => item[itemIdKey]);
     }
 
-    const added = newIncluded.filter(newItem => !currentItems.includes(newItem));
-    const removed = currentItems.filter(currItem => !newIncluded.includes(currItem));
-
-    if (added.length === 0 && removed.length === 0) {
+    const addedIDs = newIncluded.filter(newItem => !currentItemIDs.includes(newItem));
+    const removedIDs = currentItemIDs.filter(currItem => !newIncluded.includes(currItem));
+    
+    if (addedIDs.length === 0 && removedIDs.length === 0) {
       return <></>;
     }
     
+    const added = itemOptions.filter(itemObj => addedIDs.includes(itemObj[itemIdKey]));
+    const removed = itemOptions.filter(itemObj => removedIDs.includes(itemObj[itemIdKey]));
+
     return (
       <div>
         <h4 className='underline text-black text-lg text-center mt-2'>Change List</h4>
@@ -176,7 +182,7 @@ export default function CreateOrUpdate({
             <>
               <h5 className='font-bold'>Adding:</h5>
               <ul>
-                {added.map(id => <li key={id} className='ml-4'>...{id.slice(-7)}</li>)}
+                {added.map(obj => <li key={obj[itemIdKey]} className='ml-4'>{itemLabelKey === itemIdKey ? `...${obj[itemLabelKey].slice(-7)}` : `${obj[itemLabelKey].slice(0,10)}${obj[itemLabelKey].length > 10 ? '...' : ''}`}</li>)}
               </ul>
             </>
           ) : (
@@ -189,7 +195,7 @@ export default function CreateOrUpdate({
             <>
               <h5 className='font-bold'>Removing:</h5>
               <ul>
-                {removed.map(id => <li key={id} className='ml-4'>...{id.slice(-7)}</li>)}
+                {removed.map(obj => <li key={obj[itemIdKey]} className='ml-4'>{itemLabelKey === itemIdKey ? `...${obj[itemLabelKey].slice(-7)}` : `${obj[itemLabelKey].slice(0,10)}${obj[itemLabelKey].length > 10 ? '...' : ''}`}</li>)}
               </ul>
             </>
           ) : (
@@ -235,7 +241,7 @@ export default function CreateOrUpdate({
                         >
                           <option disabled value=''> -- Select -- </option>
                           {groupOptions.map(opt => {
-                            if (opt.samples.some(s => s.sampleID === autoInclude)) {
+                            if (opt[`${itemName.toLowerCase()}s`].some(s => s[itemIdKey] === autoInclude)) {
                               return <React.Fragment key={opt[groupIdKey]}></React.Fragment>;
                             } else {
                               return (
@@ -322,9 +328,11 @@ CreateOrUpdate.propTypes = {
   itemName: PropTypes.string,
   itemOptions: PropTypes.array,
   itemIdKey: PropTypes.string,
+  itemLabelKey: PropTypes.string,
   groupName: PropTypes.string,
   groupOptions: PropTypes.array,
   groupIdKey: PropTypes.string,
+  groupLabelKey: PropTypes.string,
   groupObject: PropTypes.object,
   createFunction: PropTypes.func,
   updateFunction: PropTypes.func,

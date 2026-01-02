@@ -5,17 +5,16 @@ import { Collapse } from "@mui/material";
 
 import { useData } from "../../contexts/dataContext";
 
+import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 import Button from '../Button';
 import { BaseTable } from "../Tables/BaseTable";
 
 export default function PlantInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getFieldInformation } = useData();
+    const { getFieldInformation, plants, fields, updateField } = useData();
     const information = getFieldInformation(params.fieldID);
     
-    console.log(information);
-
     const [showSampleTable, setShowSampleTable] = useState(false);
     const [showPlantTable, setShowPlantTable] = useState(false);
 
@@ -29,10 +28,6 @@ export default function PlantInformation() {
     
     const handleDeleteFromField = (row) => {
         console.log('wishlist: delete plant from field', row);
-    };
-
-    const handleAddToField = () => {
-        console.log('wishlist: add plant to field')
     };
 
     const plantTableColumns = [{
@@ -55,14 +50,6 @@ export default function PlantInformation() {
 
     const openSample = (row) => {
         navigate(`/samples/${row.sampleID}`);
-    };
-
-    const handleDeleteFromPlant = (row) => {
-        console.log('wishlist: delete sample from plant', row);
-    };
-
-    const handleAddToPlant = () => {
-        console.log('wishlist: add a sample to plant')
     };
 
     const sampleTableColumns = [{
@@ -122,12 +109,27 @@ export default function PlantInformation() {
                                 <div className='h-[1px] w-4/5 bg-gray-300 mx-auto my-3' />
                                 <p className='font-bold'>Plants in Field</p>
                                 {information.plantsTableData.length === 0 ? <></> :
-                                    <Button
-                                        onClick={handleAddToField}
-                                        className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
-                                    >
-                                        Add a Plant to this Field
-                                    </Button>
+                                    <CreateOrUpdate
+                                        itemName='Plant'
+                                        itemOptions={plants}
+                                        itemIdKey='plantID'
+                                        itemLabelKey='name'
+                                        groupName='Field'
+                                        groupOptions={fields}
+                                        groupIdKey='fieldID'
+                                        openButton={
+                                            (handleOpen) =>
+                                                <Button
+                                                    onClick={handleOpen}
+                                                    className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
+                                                >
+                                                    Add a Plant to this Field
+                                                </Button>
+                                        }
+                                        createFunction={() => {}}
+                                        updateFunction={updateField}
+                                        groupObject={fields.find(f => f.fieldID === information.fieldID)}
+                                    />
                                 }
     
                                 {information.plantsTableData.length ? (
@@ -141,12 +143,27 @@ export default function PlantInformation() {
                                 ) : (
                                     <div className='mt-2.5 text-center'>
                                         <p className='italic text-gray-500'>This field does not have any plants.</p>
-                                        <Button
-                                            onClick={handleAddToField}
-                                            className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
-                                        >
-                                            Add a Plant to this Field
-                                        </Button>
+                                        <CreateOrUpdate
+                                            itemName='Plant'
+                                            itemOptions={plants}
+                                            itemIdKey='plantID'
+                                            itemLabelKey='name'
+                                            groupName='Field'
+                                            groupOptions={fields}
+                                            groupIdKey='fieldID'
+                                            openButton={
+                                                (handleOpen) =>
+                                                    <Button
+                                                        onClick={handleOpen}
+                                                        className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
+                                                    >
+                                                        Add a Plant to this Field
+                                                    </Button>
+                                            }
+                                            createFunction={() => {}}
+                                            updateFunction={updateField}
+                                            groupObject={fields.find(f => f.fieldID === information.fieldID)}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -155,34 +172,18 @@ export default function PlantInformation() {
                         <Collapse in={showSampleTable}>
                             <div className="flex flex-col">
                                 <div className='h-[1px] w-4/5 bg-gray-300 mx-auto my-3' />
-                                <p className='font-bold'>Samples in Field</p>
-    
-                                {information.samplesTableData.length === 0 ? <></> :
-                                    <Button
-                                        onPress={handleAddToPlant}
-                                        className='px-2 py-1 w-fit m-0 mt-2 self-end text-sm'
-                                    >
-                                        Add a Sample to a Plant
-                                    </Button>
-                                }
+                                <p className='font-bold mb-3'>Samples in Field</p>
     
                                 {information.samplesTableData.length ? (
                                     <BaseTable
                                         columns={sampleTableColumns}
                                         rows={information.samplesTableData}
                                         onClick={openSample}
-                                        onClickDelete={handleDeleteFromPlant}
                                         rowsPerPageOptions={[]}
                                     />
                                 ) : (
                                     <div className='mt-2.5 text-center'>
-                                        <p className='italic text-gray-500'>There are no samples in this field.</p>
-                                        <Button
-                                            onPress={handleAddToPlant}
-                                            className='px-3 py-2 w-fit mx-auto mt-3 text-sm'
-                                        >
-                                            Add a Sample to a Plant
-                                        </Button>
+                                        <p className='italic text-gray-500'>There are no samples in this field. Create or add a plant with samples to this field.</p>
                                     </div>
                                 )}
                             </div>

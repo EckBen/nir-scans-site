@@ -454,6 +454,80 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const createNewField = async (name, plantIDs) => {
+    if (scanners === null || fields === null || fields === null) return false;
+    try {
+      // Convert list of plantIDs to plant objects
+      const newPlants = plants.filter(plantObj => plantIDs.includes(plantObj.plantID));
+
+      const results = await databaseService.createDocument(
+        'fields',
+        {
+          name,
+          fieldID: Date.now(),
+          plants: newPlants.map(p => p['$id'])
+        },
+        userData.authID
+      );
+
+      // Finish by editing fields state and handling errors
+      let successful;
+      if (results.error) {
+        // Handle error
+        successful = false;
+      } else {
+        // Handle adding to fields state
+        const newFields = JSON.parse(JSON.stringify(fields));
+        newFields.push(results);
+        setFields(newFields);
+        successful = true;
+      }
+      return successful;
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to create field.');
+      return false;
+    }
+  };
+
+  const updateField = async (newFieldObj) => {
+    if (scanners === null || fields === null || plants === null) return false;
+    try {
+      // Convert list of plantIDs to plant objects
+      const newPlants = plants.filter(plantObj => newFieldObj.plants.includes(plantObj.plantID));
+      
+      // Update field in database
+      const results = await databaseService.updateDocument(
+        'fields',
+        newFieldObj['$id'],
+        {
+          name: newFieldObj.name,
+          fieldID: newFieldObj.fieldID,
+          plants: newPlants.map(s => s['$id'])
+        }
+      );
+
+      let successful;
+      if (results.error) {
+        // Handle error
+        successful = false;
+      } else {
+        // Handle updating field in state
+        newFieldObj.plants = newPlants;
+        const fieldObjIndex = fields.findIndex(field => field.fieldID === newFieldObj.fieldID);
+        const newFields = JSON.parse(JSON.stringify(fields));
+        newFields[fieldObjIndex] = newFieldObj;
+        setFields(newFields);
+        successful = true;
+      }
+      return successful;
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to update field.');
+      return false;
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       userData,
@@ -469,7 +543,9 @@ export const DataProvider = ({ children }) => {
       createNewPlant,
       updatePlant,
       fieldTableData,
-      getFieldInformation
+      getFieldInformation,
+      createNewField,
+      updateField
     }}>{ children }</DataContext.Provider>
   );
 };

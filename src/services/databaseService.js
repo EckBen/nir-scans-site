@@ -528,7 +528,8 @@ const databaseService = {
             config.collIds['fields'],
             [
               Query.select([
-                'plants.$id',
+                'plants.plantID',
+                'plants.name'
               ])
             ]
           ))
