@@ -42,3 +42,5 @@ export default function UnverifiedUser() {
 // have home replaced with AddScanner
 // have tables empty
 // if attempt to go to /samples/some-id, redirect to empty samples table for home/AddScanner
+
+// make sure users cant access other users data

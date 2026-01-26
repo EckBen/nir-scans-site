@@ -29,7 +29,7 @@ export default function SamplesTable() {
     <BaseTable
       initSortDirection='desc'
       columns={columns}
-      rows={sampleTableData.concat(sampleTableData,sampleTableData,sampleTableData,sampleTableData,sampleTableData)}
+      rows={sampleTableData}
       onClick={openSample}
       initRowsPerPage={20}
       rowsPerPageOptions={[]}

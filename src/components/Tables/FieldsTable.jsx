@@ -2,18 +2,16 @@ import { useNavigate } from "react-router";
 import { useData } from '../../contexts/dataContext';
 
 import { BaseTable } from './BaseTable';
+import CreateOrUpdate from "../crudModals/CreateOrUpdate";
+import Button from "../Button";
 
 export default function FieldsTable() {
-  const { fieldTableData } = useData();
+  const { fieldTableData, deleteField, plants, fields, createNewField, updateField } = useData();
   const navigate = useNavigate();
   
   const openField = ({ href }) => {
     navigate(href);
   };
-
-  const deleteField = (row) => {
-    console.log('Wishlist - delete field from field table', row);
-  }
 
   const columns = [{
     key: 'fieldName',
@@ -33,14 +31,42 @@ export default function FieldsTable() {
   }];
 
   return (
-    <BaseTable
-      initSortDirection='desc'
-      columns={columns}
-      rows={fieldTableData}
-      onClick={openField}
-      onClickDelete={deleteField}
-      initRowsPerPage={20}
-      rowsPerPageOptions={[]}
-    />
+    <>
+      {(plants && fields) ? (
+        <CreateOrUpdate
+          forceNew={true}
+          itemName='Plant'
+          itemOptions={plants}
+          itemIdKey='plantID'
+          itemLabelKey='name'
+          groupName='Field'
+          groupOptions={fields}
+          groupIdKey='fieldID'
+          openButton={
+            (handleOpen) =>
+              <div className='flex'>
+                <Button
+                  onClick={handleOpen}
+                  className='px-2 py-1 mt-2 ml-auto text-sm self-end'
+                >
+                  Create New Field
+                </Button>
+              </div>
+          }
+          createFunction={createNewField}
+          updateFunction={updateField}
+        />
+      ) : <></>}
+    
+      <BaseTable
+        initSortDirection='desc'
+        columns={columns}
+        rows={fieldTableData}
+        onClick={openField}
+        onClickDelete={deleteField}
+        initRowsPerPage={20}
+        rowsPerPageOptions={[]}
+      />
+    </>
   );
 }

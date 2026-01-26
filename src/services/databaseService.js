@@ -482,16 +482,20 @@ const databaseService = {
       return { error: error.message };
     }
   },
-  // // Delete Document
-  // async deleteDocument(colName, id) {
-  //   try {
-  //     await asyncWithTimeout(database.deleteDocument(config.dbId, config.collIds[colName], id));
-  //     return { success: true };
-  //   } catch (error) {
-  //     console.error('Error deleting document:', error.message);
-  //     return { error: error.message };
-  //   }
-  // },
+  // Delete Document
+  async deleteDocument(collName, id) {
+    if (config.stub) {
+      await new Promise((res) => setTimeout(() => res(null), config.stubPause));
+      return { success: true, stubbed: true };
+    } else {
+      try {
+        return asyncWithTimeout(database.deleteDocument(config.dbId, config.collIds[collName], id));
+      } catch (error) {
+        console.error('Error deleting document:', error.message);
+        return { error: error.message };
+      }
+    }
+  },
 
   // Get initial data from appwrite database
   async getInitData() {

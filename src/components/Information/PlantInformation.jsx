@@ -17,6 +17,7 @@ export default function PlantInformation() {
         sampleTableData,
         plants,
         updatePlant,
+        deletePlant,
         fields,
         createNewField,
         updateField
@@ -34,8 +35,17 @@ export default function PlantInformation() {
         navigate(`/fields/${row.fieldID}`);
     };
     
-    const handleDeleteFromField = (row) => {
-        console.log('wishlist: delete plant from field', row);
+    const handleRemovePlantFromField = (row) => {
+        if (confirm('Are you sure that you want to remove this plant from the selected field?')) {
+            // Find and copy field object
+            const newFieldObj = JSON.parse(JSON.stringify(fields.find(f => f.fieldID === row.fieldID)));
+    
+            // Remove the target plant from the field
+            newFieldObj.plants = newFieldObj.plants.filter(p => p.plantID !== information.plantID).map(p => p.plantID);
+    
+            // Update the field in state and database
+            updateField(newFieldObj);
+        }
     };
 
     const fieldTableColumns = [{
@@ -57,8 +67,17 @@ export default function PlantInformation() {
         navigate(`/samples/${row.sampleID}`);
     };
 
-    const handleDeleteFromPlant = (row) => {
-        console.log('wishlist: delete sample from plant', row);
+    const handleRemoveSampleFromPlant = (row) => {
+        if (confirm('Are you sure that you want to remove the selected sample from this plant?')) {
+            // Find and copy plant object
+            const newPlantObj = JSON.parse(JSON.stringify(plants.find(p => p.plantID === information.plantID)));
+
+            // Remove the target sample from plant
+            newPlantObj.samples = newPlantObj.samples.filter(s => s.sampleID !== row.sampleID).map(s => s.sampleID);
+
+            // Update the plant in state and database
+            updatePlant(newPlantObj);
+        }
     };
 
     const sampleTableColumns = [{
@@ -93,10 +112,16 @@ export default function PlantInformation() {
                         <p className='font-bold mt-2'>{information.plantName}</p>
                         <p>ID: {information.plantID}</p>
 
-                        <div className='flex flex-col items-center border border-gray-300 p-3 m-4'>
-                            <p className='text-4xl font-bold'>{information.lineChartData[information.lineChartData.length - 1].y} %</p>
-                            <p className='italic text-sm text-gray-500'>(Latest Daily Average Moisture)</p>
-                        </div>
+                        {information.averageMoisture === null ? (
+                                <div className='w-fit m-auto'>
+                                    <p className='text-gray-400 italic my-5 max-w-[200px] text-center'>No samples in this plant. Add at least one to get the average moisture percentage.</p>
+                                </div>
+                            ) : (
+                                <div className='flex flex-col items-center border border-gray-300 p-3 m-4'>
+                                    <p className='text-4xl font-bold'>{information.averageMoisture} %</p>
+                                    <p className='italic text-sm text-gray-500'>(Average Moisture)</p>
+                                </div>
+                        )}
 
                         <div className='flex justify-around gap-6'>
                             <Button
@@ -148,7 +173,7 @@ export default function PlantInformation() {
                                         columns={fieldTableColumns}
                                         rows={information.fieldsTableData}
                                         onClick={openField}
-                                        onClickDelete={handleDeleteFromField}
+                                        onClickRemove={handleRemovePlantFromField}
                                         rowsPerPageOptions={[]}
                                     />
                                 ) : (
@@ -216,7 +241,7 @@ export default function PlantInformation() {
                                         columns={sampleTableColumns}
                                         rows={information.samplesTableData}
                                         onClick={openSample}
-                                        onClickDelete={handleDeleteFromPlant}
+                                        onClickRemove={handleRemoveSampleFromPlant}
                                         rowsPerPageOptions={[]}
                                     />
                                 ) : (
@@ -247,6 +272,15 @@ export default function PlantInformation() {
                                 )}
                             </div>
                         </Collapse>
+
+                        <div className='flex justify-center'>
+                            <Button
+                                onClick={() => deletePlant(information)}
+                                variant='warning'
+                            >
+                                Delete This Plant
+                            </Button>
+                        </div>
                     </>
                 )}
             </div>

@@ -9,10 +9,10 @@ import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 import Button from '../Button';
 import { BaseTable } from "../Tables/BaseTable";
 
-export default function PlantInformation() {
+export default function FieldInformation() {
     const navigate = useNavigate();
     const params = useParams();
-    const { getFieldInformation, plants, fields, updateField } = useData();
+    const { getFieldInformation, plants, fields, updateField, deleteField } = useData();
     const information = getFieldInformation(params.fieldID);
     
     const [showSampleTable, setShowSampleTable] = useState(false);
@@ -26,8 +26,17 @@ export default function PlantInformation() {
         navigate(`/plants/${row.plantID}`);
     };
     
-    const handleDeleteFromField = (row) => {
-        console.log('wishlist: delete plant from field', row);
+    const handleRemovePlantFromField = (row) => {
+        if (confirm('Are you sure that you want to remove selected plant from this field?')) {
+            // Find and copy field object
+            const newFieldObj = JSON.parse(JSON.stringify(fields.find(f => f.fieldID === information.fieldID)));
+    
+            // Remove the target plant from the field
+            newFieldObj.plants = newFieldObj.plants.filter(p => p.plantID !== row.plantID).map(p => p.plantID);
+    
+            // Update the field in state and database
+            updateField(newFieldObj);
+        }
     };
 
     const plantTableColumns = [{
@@ -84,10 +93,18 @@ export default function PlantInformation() {
                         <p className='font-bold mt-2'>{information.fieldName}</p>
                         <p>ID: {information.fieldID}</p>
 
-                        <div className='flex flex-col items-center border border-gray-300 p-3 m-4'>
-                            <p className='text-4xl font-bold'>{information.lineChartData[information.lineChartData.length - 1].y} %</p>
-                            <p className='italic text-sm text-gray-500'>(Latest Daily Average Moisture)</p>
-                        </div>
+                        {information.lineChartData === null ? (
+                            <div className='w-fit m-auto'>
+                                {information.samplesTableData.length === 0 ? <p className='text-gray-400 italic my-5 max-w-[200px] text-center'>No samples in the plants that this field contains.</p> : <></>}
+                                {information.plantsTableData.length === 0 ? <p className='text-gray-400 italic my-5 max-w-[200px] text-center'>No plants in this field.</p> : <></>}
+                                <p className='text-gray-400 italic my-5 max-w-[200px] text-center'>Add items to get the average moisture percentage.</p>
+                            </div>
+                        ) : (
+                            <div className='flex flex-col items-center border border-gray-300 p-3 m-4'>
+                                <p className='text-4xl font-bold'>{information.lineChartData[information.lineChartData.length - 1].y} %</p>
+                                <p className='italic text-sm text-gray-500'>(Latest Daily Average Moisture)</p>
+                            </div>
+                        )}
 
                         <div className='flex justify-around gap-6'>
                             <Button
@@ -137,7 +154,7 @@ export default function PlantInformation() {
                                         columns={plantTableColumns}
                                         rows={information.plantsTableData}
                                         onClick={openPlant}
-                                        onClickDelete={handleDeleteFromField}
+                                        onClickRemove={handleRemovePlantFromField}
                                         rowsPerPageOptions={[]}
                                     />
                                 ) : (
@@ -188,6 +205,15 @@ export default function PlantInformation() {
                                 )}
                             </div>
                         </Collapse>
+
+                        <div className='flex justify-center'>
+                            <Button
+                                onClick={() => deleteField(information)}
+                                variant='warning'
+                            >
+                                Delete This Field
+                            </Button>
+                        </div>
                     </>
                 )}
             </div>

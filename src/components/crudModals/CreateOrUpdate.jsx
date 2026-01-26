@@ -19,13 +19,14 @@ export default function CreateOrUpdate({
   groupObject=null,
   createFunction,
   updateFunction,
-  autoInclude=null
+  autoInclude=null,
+  forceNew=false
 }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selection, setSelection] = useState(groupObject ? 'addTo' : '');
-  const [selectedGroup, setSelectedGroup] = useState(groupObject);
-  const [name, setName] = useState(groupObject ? groupObject.name : '');
-  const [newIncluded, setNewIncluded] = useState(groupObject ? groupObject[`${itemName.toLowerCase()}s`].map(itemObj => itemObj[itemIdKey]) : []);
+  const [selection, setSelection] = useState(forceNew ? 'create' : (groupObject ? 'addTo' : ''));
+  const [selectedGroup, setSelectedGroup] = useState(forceNew ? null : groupObject);
+  const [name, setName] = useState(forceNew ? '' : (groupObject ? groupObject.name : ''));
+  const [newIncluded, setNewIncluded] = useState(forceNew ? [] : (groupObject ? groupObject[`${itemName.toLowerCase()}s`].map(itemObj => itemObj[itemIdKey]) : []));
   const [excludedFilter, setExcludedFilter] = useState('');
   const [includedFilter, setIncludedFilter] = useState('');
 
@@ -42,6 +43,9 @@ export default function CreateOrUpdate({
   }
 
   const handleOpen = () => {
+    if (forceNew) {
+      setSelection('create');
+    }
     setModalVisible(true);
   };
 
@@ -337,4 +341,5 @@ CreateOrUpdate.propTypes = {
   createFunction: PropTypes.func,
   updateFunction: PropTypes.func,
   autoInclude: PropTypes.string,
+  forceNew: PropTypes.bool,
 };

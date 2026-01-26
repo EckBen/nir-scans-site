@@ -17,10 +17,6 @@ export default function SampleInformation() {
         navigate(`/plants/${row.plantID}`);
     };
 
-    const handleDeleteFromPlant = (row) => {
-        console.log('wishlist: delete sample from plant', row);
-    };
-
     const plantTableColumns = [{
         key: 'name',
         label: 'Plant Name',
@@ -99,7 +95,6 @@ export default function SampleInformation() {
                                 columns={plantTableColumns}
                                 rows={information.plantsWithSample}
                                 onClick={openPlant}
-                                onClickDelete={handleDeleteFromPlant}
                                 rowsPerPageOptions={[]}
                             />
                         ) : (

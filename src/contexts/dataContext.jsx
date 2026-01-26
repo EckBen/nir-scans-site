@@ -157,9 +157,16 @@ export const DataProvider = ({ children }) => {
     if (scannerToRemove) {
       updateLoading(['removeScanner'],[]);
       
-      
       const currentScanners = scanners.map(s => s['$id']);
       const successful = await databaseService.removeScannerFromUserAccount(scannerToRemove['$id'], currentScanners, userData.id);
+
+      const sampleIDsToRemove = scannerToRemove.samples.map(s => s.sampleID);
+      for (const plant of plants) {
+        const newPlantSamples = plant.samples.filter(s => !sampleIDsToRemove.includes(s.sampleID)).map(s => s.sampleID);
+        if (newPlantSamples.length !== plant.samples.length) {
+          await updatePlant({ ...plant, samples: newPlantSamples });
+        }
+      }
       
       if (successful) {
         // Update all user data to remove scanner from local state
@@ -239,9 +246,9 @@ export const DataProvider = ({ children }) => {
           plantName: plant.name,
           plantID: plant.plantID,
           plant$ID: plant.$id,
-          latestMoisture: latestSample.modelResult,
-          latestTimestamp: timeStampFormatter.format(new Date(latestSample.timestamp)),
-          unformattedLatestTimestamp: latestSample.timestamp,
+          latestMoisture: latestSample ? latestSample.modelResult : null,
+          latestTimestamp: latestSample ? timeStampFormatter.format(new Date(latestSample.timestamp)) : null,
+          unformattedLatestTimestamp: latestSample ? latestSample.timestamp : null,
           hasXSamples: plant.samples.length,
           inXFields: fieldsWithPlant.length
         });
@@ -258,6 +265,7 @@ export const DataProvider = ({ children }) => {
       
       const sampleIDs = plant.samples.map(sample => sample.sampleID);
       const plantSampleTableData = sampleTableData.filter(row => sampleIDs.includes(row.sampleID));
+      const averageMoisture = plantSampleTableData.length > 0 ? plantSampleTableData.reduce((s,v) => v.modelResult + s, 0) / plantSampleTableData.length : null;
       
       const fieldIDs = fields.filter(field => field.plants.some(f => f.$id === plant.$id)).map(f => f.fieldID);
       const plantFieldTableData = fieldTableData.filter(row => fieldIDs.includes(row.fieldID));
@@ -265,8 +273,7 @@ export const DataProvider = ({ children }) => {
       return {
         plantName: plant.name,
         plantID: numericPlantID,
-        scatterChartData: plantSampleTableData.map(({ unformattedTimestamp, modelResult, scannerID, sampleID }, i) => ({ i, x: unformattedTimestamp, y: modelResult, scannerID, sampleID })),
-        lineChartData: toDailyAverages(plantSampleTableData, 'unformattedTimestamp', 'modelResult'),
+        averageMoisture: averageMoisture,
         fieldsTableData: plantFieldTableData,
         samplesTableData: plantSampleTableData
       };
@@ -364,6 +371,51 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const deletePlant = async (row) => {
+    if (confirm('Are you sure that you want to delete this plant?')) {
+      if (fields === null || plants === null) return false;
+      try {
+        // Find plant to delete to get the $id from
+        const plantToDelete = plants.find(p => p.plantID === row.plantID);
+
+        // Delete the plant from the database
+        const results = await databaseService.deleteDocument(
+          'plants',
+          plantToDelete.$id
+        );
+
+        // Finish by editing state and handling errors
+        let successful;
+        if (results.error) {
+          // Handle error
+          successful = false;
+        } else {
+          // Handle removing from plants state
+          const newPlants = plants.filter(p => p.plantID !== row.plantID);
+          setPlants(newPlants);
+
+          // Remove the plant from fields in database and state
+          for (const f of fields) {
+            const newPlants = f.plants.filter(p => p.plantID !== row.plantID);
+            if (f.plants.length !== newPlants.length) {
+              await updateField({
+                ...f,
+                plants: newPlants.map(p => p.plantID)
+              });
+            }
+          }
+
+          successful = true;
+        }
+        return successful;
+      } catch (e) {
+        console.error(e);
+        toast.error('Failed to delete plant.');
+        return false;
+      }
+    }
+  };
+
   const fieldTableData = useMemo(() => {
     const rows = [];
     if (scanners && plants && fields) {
@@ -402,9 +454,9 @@ export const DataProvider = ({ children }) => {
           href: `/fields/${field.fieldID}`,
           fieldName: field.name,
           fieldID: field.fieldID,
-          latestAvgMoisture: isNaN(latestAvgMoisture) ? '--' : latestAvgMoisture,
-          latestDay: latestDay === null ? '--' : dayFormatter.format(new Date(latestDay)),
-          unformattedLatestDay: latestDay === null ? '--' : latestDay,
+          latestAvgMoisture: isNaN(latestAvgMoisture) ? null : latestAvgMoisture,
+          latestDay: latestDay === null ? null : dayFormatter.format(new Date(latestDay)),
+          unformattedLatestDay: latestDay === null ? null : latestDay,
           fromXSamples: latestDailySamples.length,
           fromXPlants: latestFromPlants.length,
           hasXPlants: field.plants.length,
@@ -436,8 +488,8 @@ export const DataProvider = ({ children }) => {
       return {
         fieldName: field.name,
         fieldID: numericFieldID,
-        scatterChartData: fieldSampleTableData.map(({ unformattedTimestamp, modelResult, scannerID, sampleID }) => ({ x: unformattedTimestamp, y: modelResult, scannerID, sampleID })),
-        lineChartData: toDailyAverages(fieldSampleTableData, 'unformattedTimestamp', 'modelResult'),
+        scatterChartData: fieldSampleTableData.length === 0 ? null : fieldSampleTableData.map(({ unformattedTimestamp, modelResult, scannerID, sampleID }) => ({ x: unformattedTimestamp, y: modelResult, scannerID, sampleID })),
+        lineChartData: fieldSampleTableData.length === 0 ? null : toDailyAverages(fieldSampleTableData, 'unformattedTimestamp', 'modelResult'),
         plantsTableData: fieldPlantTableData,
         samplesTableData: fieldSampleTableData
       };
@@ -455,7 +507,7 @@ export const DataProvider = ({ children }) => {
   };
 
   const createNewField = async (name, plantIDs) => {
-    if (scanners === null || fields === null || fields === null) return false;
+    if (scanners === null || fields === null || plants === null) return false;
     try {
       // Convert list of plantIDs to plant objects
       const newPlants = plants.filter(plantObj => plantIDs.includes(plantObj.plantID));
@@ -528,6 +580,39 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const deleteField = async (row) => {
+    if (confirm('Are you sure that you want to delete this field?')) {
+      if (fields === null) return false;
+      try {
+        // Find field to delete to get the $id from
+        const fieldToDelete = fields.find(f => f.fieldID === row.fieldID);
+
+        // Delete the field from the database
+        const results = await databaseService.deleteDocument(
+          'fields',
+          fieldToDelete.$id
+        );
+
+        // Finish by editing state and handling errors
+        let successful;
+        if (results.error) {
+          // Handle error
+          successful = false;
+        } else {
+          // Handle removing from fields state
+          const newFields = fields.filter(f => f.fieldID !== row.fieldID);
+          setFields(newFields);
+          successful = true;
+        }
+        return successful;
+      } catch (e) {
+        console.error(e);
+        toast.error('Failed to delete field.');
+        return false;
+      }
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       userData,
@@ -542,10 +627,12 @@ export const DataProvider = ({ children }) => {
       getPlantInformation,
       createNewPlant,
       updatePlant,
+      deletePlant,
       fieldTableData,
       getFieldInformation,
       createNewField,
-      updateField
+      updateField,
+      deleteField
     }}>{ children }</DataContext.Provider>
   );
 };

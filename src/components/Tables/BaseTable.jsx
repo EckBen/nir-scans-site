@@ -15,7 +15,7 @@ import IconButton from '@mui/material/IconButton';
 import ScrollShadow from '../ScrollShadow/ScrollShadow';
 
 import { FaTrash } from "react-icons/fa";
-import { MdOpenInNew } from "react-icons/md";
+import { MdOpenInNew, MdRemove } from "react-icons/md";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -73,7 +73,17 @@ EnhancedTableHead.propTypes = {
 
 
 
-export function BaseTable({ initSortDirection='asc', columns, rows, onClick, maxWidth=650, onClickDelete=false, initRowsPerPage=5, rowsPerPageOptions=[5,10,25] }) {
+export function BaseTable({
+  initSortDirection='asc',
+  columns,
+  rows,
+  onClick,
+  maxWidth=650,
+  onClickDelete=false,
+  onClickRemove=false,
+  initRowsPerPage=5,
+  rowsPerPageOptions=[5,10,25]
+}) {
   const [order, setOrder] = React.useState(initSortDirection);
   const [orderBy, setOrderBy] = React.useState(columns[0].key);
   const [page, setPage] = React.useState(0);
@@ -134,7 +144,7 @@ export function BaseTable({ initSortDirection='asc', columns, rows, onClick, max
                         <TableCell
                           key={key + index}
                           align={i === 0 ? 'left' : 'center'}
-                        >{row[key]}</TableCell>)}
+                        >{row[key] === null ? '--' : row[key]}</TableCell>)}
                       <TableCell>
                         <Box sx={{ display: 'flex' }}>
                           <IconButton aria-label="open">
@@ -146,6 +156,14 @@ export function BaseTable({ initSortDirection='asc', columns, rows, onClick, max
                               onClickDelete(row);
                             }} aria-label="delete">
                               <FaTrash color='red' size='20px' />
+                            </IconButton>
+                          )}
+                          {onClickRemove === false ? (<></>) : (
+                            <IconButton onClick={(e) => {
+                              e.stopPropagation();
+                              onClickRemove(row);
+                            }} aria-label="remove">
+                              <MdRemove color='red' size='20px' />
                             </IconButton>
                           )}
                         </Box>
@@ -187,6 +205,7 @@ BaseTable.propTypes = {
   onClick: PropTypes.func.isRequired,
   maxWidth: PropTypes.number,
   onClickDelete: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+  onClickRemove: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
   initRowsPerPage: PropTypes.number,
   rowsPerPageOptions: PropTypes.array
 };

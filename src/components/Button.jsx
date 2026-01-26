@@ -18,6 +18,9 @@ export default function Button({onClick, variant='normal', className='', childre
     case 'cancel':
       variantStyles = 'flex-row items-center justify-center rounded-sm px-3 py-1 border border-gray-300 bg-gray-100 text-gray-600 font-semibold text-md hover:bg-gray-300 hover:cursor-pointer';
       break;
+    case 'warning':
+      variantStyles = 'rounded-sm px-3 py-1 border border-red-500 bg-red-500 text-white font-semibold text-md hover:bg-red-600 hover:cursor-pointer';
+      break;
     default:
       variantStyles = '';
       break;

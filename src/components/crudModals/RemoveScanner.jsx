@@ -25,7 +25,7 @@ export default function RemoveScanner({ handleRemoveScanner }) {
   const handleSubmit = async () => {
     const pattern = /^P\d{9}$/;
     if (pattern.test(scannerId)) {
-      if (window.confirm('Are you sure that you want to remove this scanner? This action will delete all related samples and plants from your account and it cannot be undone.')) {
+      if (window.confirm('Are you sure that you want to remove this scanner? This action will remove all samples created by the scanner from all plants in your account and it cannot be undone.')) {
         setIsLoading(true);
   
         const wasSuccessful = await handleRemoveScanner(scannerId);
