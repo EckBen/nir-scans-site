@@ -32,10 +32,20 @@ const findSampleData = (sampleID, scanners) => {
   return undefined;
 };
 
+const reformatDate = (dateString) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  // Months are 0-indexed, so add 1
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
 const toDailyAverages = (dataArr, timestampKey, valueKey, keysToPassThrough=[]) => {
   const dailyData = {};
   for (const item of dataArr) {
-    const timestamp = item[timestampKey].slice(0,10) + 'T00:00:00.000+00:00';
+    const timestamp = reformatDate(item[timestampKey]);
     if (!(timestamp in dailyData)) {
       dailyData[timestamp] = { values: [], passThrough: {} };
     }
@@ -280,12 +290,6 @@ export const DataProvider = ({ children }) => {
     } catch (e) {
       console.error(e);
       toast.error('Unable to locate plant data.');
-      // Toast.show({
-      //   type: 'error',
-      //   text1: 'Unable to locate plant data.',
-      //   visibilityTime: 3000,
-      //   autoHide: true
-      // });
       return null;
     }
   };
@@ -433,7 +437,7 @@ export const DataProvider = ({ children }) => {
               if (sampleData) {
                 numSamplesInField += 1;
                 const sampleDay = sampleData.timestamp.slice(0,10);
-                if (latestDay === null || sampleDay < latestDay) {
+                if (latestDay === null || latestDay < sampleDay) {
                   latestDay = sampleDay;
                   latestDailySamples = [sampleData];
                   latestFromPlants = [plant.plantID];
@@ -484,11 +488,11 @@ export const DataProvider = ({ children }) => {
       }
 
       const fieldSampleTableData = sampleTableData.filter(row => sampleIDs.includes(row.sampleID));
-
+      
       return {
         fieldName: field.name,
         fieldID: numericFieldID,
-        scatterChartData: fieldSampleTableData.length === 0 ? null : fieldSampleTableData.map(({ unformattedTimestamp, modelResult, scannerID, sampleID }) => ({ x: unformattedTimestamp, y: modelResult, scannerID, sampleID })),
+        scatterChartData: fieldSampleTableData.length === 0 ? null : fieldSampleTableData.map(({ unformattedTimestamp, modelResult, scannerID, sampleID }) => ({ x: new Date(unformattedTimestamp).getTime(), y: modelResult, dateString: unformattedTimestamp, scannerID, sampleID })),
         lineChartData: fieldSampleTableData.length === 0 ? null : toDailyAverages(fieldSampleTableData, 'unformattedTimestamp', 'modelResult'),
         plantsTableData: fieldPlantTableData,
         samplesTableData: fieldSampleTableData
@@ -496,12 +500,6 @@ export const DataProvider = ({ children }) => {
     } catch (e) {
       console.error(e);
       toast.error('Unable to locate field data.');
-      // Toast.show({
-      //   type: 'error',
-      //   text1: 'Unable to locate field data.',
-      //   visibilityTime: 3000,
-      //   autoHide: true
-      // });
       return null;
     }
   };

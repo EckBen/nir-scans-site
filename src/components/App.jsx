@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router'
-import { ToastContainer, Bounce, toast } from "react-toastify";
+import { ToastContainer, Bounce } from "react-toastify";
 
 import { useAuth } from '../contexts/authContext';
 
@@ -19,10 +19,6 @@ import Login from './auth/Login';
 import Verify from './auth/Verify';
 import Recovery from './auth/Recovery';
 import UnverifiedUser from './auth/UnverifiedUser';
-
-function toastIt() {
-  toast.error('Test toast')
-}
 
 export default function App() {
   const location = useLocation();
@@ -85,8 +81,6 @@ export default function App() {
             <Route index path="settings" element={<Settings />} />
           </Route>
         </Routes>
-
-        <button className='bg-gray-300 p-2 mt-10' onClick={toastIt}>Test Toast</button>
       </main>
 
       <ToastContainer

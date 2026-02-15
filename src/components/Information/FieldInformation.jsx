@@ -8,6 +8,7 @@ import { useData } from "../../contexts/dataContext";
 import CreateOrUpdate from "../crudModals/CreateOrUpdate";
 import Button from '../Button';
 import { BaseTable } from "../Tables/BaseTable";
+import FieldCharts from "../FieldCharts";
 
 export default function FieldInformation() {
     const navigate = useNavigate();
@@ -105,6 +106,8 @@ export default function FieldInformation() {
                                 <p className='italic text-sm text-gray-500'>(Latest Daily Average Moisture)</p>
                             </div>
                         )}
+
+                        {information.lineChartData === null ? '' : <FieldCharts lineChartData={information.lineChartData} scatterChartData={information.scatterChartData} />}
 
                         <div className='flex justify-around gap-6'>
                             <Button
