@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router'
 import { ToastContainer, Bounce } from "react-toastify";
 
 import { useAuth } from '../contexts/authContext';
+import { useLoading } from '../contexts/loadingContext';
 
 import TopNav from './TopNav';
 import BreadCrumbs from './BreadCrumbs';
@@ -19,10 +20,12 @@ import Login from './auth/Login';
 import Verify from './auth/Verify';
 import Recovery from './auth/Recovery';
 import UnverifiedUser from './auth/UnverifiedUser';
+import Loading from './Loading';
 
 export default function App() {
   const location = useLocation();
   const { userAuth, getUser } = useAuth();
+  const { isLoading } = useLoading();
   
   const [initialized, setInitialized] = useState(false);
 
@@ -43,7 +46,7 @@ export default function App() {
       }
       
       <main
-        className="flex flex-col items-center p-2"
+        className="relative flex flex-col items-center p-2"
       >
         <Routes>
           {/* Public routes */}
@@ -81,6 +84,8 @@ export default function App() {
             <Route index path="settings" element={<Settings />} />
           </Route>
         </Routes>
+
+        {isLoading && <Loading />}
       </main>
 
       <ToastContainer

@@ -431,16 +431,6 @@ const createScannerDataStub = {
 };
 
 const databaseService = {
-  // // List documents
-  // async listDocuments(colName, queries=[]) {
-  //   try {
-  //     const response = await asyncWithTimeout(database.listDocuments(config.dbId, config.collIds[colName], queries));
-  //     return { data: response.documents || [], error: null };
-  //   } catch (error) {
-  //     console.error('Error fetching documents:', error.message);
-  //     return { error: error.message };
-  //   }
-  // },
   // Update documents
   async updateDocument(collName, id, data) {
     if (config.stub) {
@@ -513,8 +503,6 @@ const databaseService = {
             [
               Query.select([
                 'scanners.samples.*',
-                // 'fields.plants.$id',
-                // 'plants.samples.$id'
               ])
             ]
           )),
@@ -593,6 +581,7 @@ const databaseService = {
 
       if (config.stub === false) {
         // Add new scanner $id to the user's scanner relationship
+        console.log(config.dbId, config.collIds[userCollId], userId, { scanners: [ ...currentScanners, scannerData['$id']] });
         await asyncWithTimeout(database.updateDocument(config.dbId, config.collIds[userCollId], userId, { scanners: [ ...currentScanners, scannerData['$id']] }))
       }
 

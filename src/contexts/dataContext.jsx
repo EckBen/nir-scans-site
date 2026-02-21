@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 
 import databaseService from '../services/databaseService';
-// import functionsService from '../services/functionsService';
+// import functionsService from "../services/functionsService";
 import { useAuth } from './authContext';
 import { useLoading } from './loadingContext';
 
@@ -73,6 +73,8 @@ const getDataForUser = async (updateLoading, setUserData, setScanners, setFields
 
   const allCurrentData = await databaseService.getInitData();
 
+  console.log(allCurrentData);
+
   if (allCurrentData?.error) {
     // In case of error, everything gets set to null
     setUserData(null);
@@ -87,9 +89,9 @@ const getDataForUser = async (updateLoading, setUserData, setScanners, setFields
       id: allCurrentData.$id,
     });
 
-    setScanners(allCurrentData.scanners);
-    setFields(allCurrentData.fields);
-    setPlants(allCurrentData.plants);
+    setScanners(allCurrentData.scanners || null);
+    setFields(allCurrentData.fields || null);
+    setPlants(allCurrentData.plants || null);
 
     // Get any new stuff from the trinamiX database in the background
     await getNewSamples(allCurrentData.scanners);
@@ -124,6 +126,8 @@ export const DataProvider = ({ children }) => {
 
     // // Get the new samples
     // const results = await functionsService.getNewSamples(fetchScanners);
+
+    // console.log(results);
     
     // // Update the current information with the new samples
     // const newScanners = JSON.parse(JSON.stringify(currentScannerState));
@@ -146,7 +150,7 @@ export const DataProvider = ({ children }) => {
   };
 
   const addScannerToUserAccount = async (newScannerID) => {
-    const currentScanners = scanners.map(s => s['$id']);
+    const currentScanners = scanners === null ? [] : scanners.map(s => s['$id']);
     const newScannerData = await databaseService.addScannerToUserAccount(newScannerID, currentScanners, userData.id);
         
     let successful;

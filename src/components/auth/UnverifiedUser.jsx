@@ -28,19 +28,3 @@ export default function UnverifiedUser() {
     </CardWithTitle>
   );
 }
-
-
-// Then do verify page (flow here needs to include logged in check/login) and functionality
-// Then test verify functionality
-// Then check all auth data flows
-//    register --> unverified, nowhere else
-//    logged in, unverified --> unverified, nowhere else
-//    verify --> verify page, makes sure it works then redirects to /
-//    logged in, verified --> any route directly, except unverified or verify
-
-// check data for new user
-// have home replaced with AddScanner
-// have tables empty
-// if attempt to go to /samples/some-id, redirect to empty samples table for home/AddScanner
-
-// make sure users cant access other users data
