@@ -3,8 +3,10 @@ import { Client, Account, Databases, Functions } from "appwrite";
 const config = {
   stub: false,          // fake1, eck_ben, or false
   stubPause: 1,         // 2000 or 1
-  verificationEndpoint: 'http://localhost:5173/verify',
-  recoveryEndpoint: 'http://localhost:5173/recovery',
+  // verificationEndpoint: 'http://localhost:5173/verify',
+  // recoveryEndpoint: 'http://localhost:5173/recovery',
+  verificationEndpoint: 'https://nir-scans-site.appwrite.network/verify',
+  recoveryEndpoint: 'https://nir-scans-site.appwrite.network/verify',
   endpoint: import.meta.env.VITE_APPWRITE_ENDPOINT,
   projectId: import.meta.env.VITE_APPWRITE_PROJECT_ID,
   functionId: import.meta.env.VITE_APPWRITE_FUNCTION_ID,
