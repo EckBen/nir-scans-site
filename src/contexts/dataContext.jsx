@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 
 import databaseService from '../services/databaseService';
-// import functionsService from "../services/functionsService";
+import functionsService from "../services/functionsService";
 import { useAuth } from './authContext';
 import { useLoading } from './loadingContext';
 
@@ -121,30 +121,30 @@ export const DataProvider = ({ children }) => {
 
   const getNewSamples = async (currentScannerState) => {
     updateLoading(['newSamples'],[]);
-    console.log('Stubbed out getNewSamples call', currentScannerState);
-    // const fetchScanners = currentScannerState.map(scannerObj => scannerObj.scannerID)
 
-    // // Get the new samples
-    // const results = await functionsService.getNewSamples(fetchScanners);
+    const fetchScanners = currentScannerState.map(scannerObj => scannerObj.scannerID)
 
-    // console.log(results);
+    // Get the new samples
+    const results = await functionsService.getNewSamples(fetchScanners);
+
+    console.log(results);
     
-    // // Update the current information with the new samples
-    // const newScanners = JSON.parse(JSON.stringify(currentScannerState));
-    // for (const [scannerId, newSamples] of Object.entries(results.data)) {
-    //   const scannerIdx = newScanners.findIndex(s => s.scannerID === scannerId);
-    //   for (const sample of newSamples) {
-    //     // Add new sample or update existing sample (since it was updated)
-    //     const sampleIdx = newScanners[scannerIdx].samples.findIndex(s => s.sampleID === sample.sampleID);
-    //     if (sampleIdx >= 0) {
-    //       newScanners[scannerIdx].samples[sampleIdx] = sample;
-    //     } else {
-    //       newScanners[scannerIdx].samples.push(sample);
-    //     }
-    //   }
-    // }
+    // Update the current information with the new samples
+    const newScanners = JSON.parse(JSON.stringify(currentScannerState));
+    for (const [scannerId, newSamples] of Object.entries(results.data)) {
+      const scannerIdx = newScanners.findIndex(s => s.scannerID === scannerId);
+      for (const sample of newSamples) {
+        // Add new sample or update existing sample (since it was updated)
+        const sampleIdx = newScanners[scannerIdx].samples.findIndex(s => s.sampleID === sample.sampleID);
+        if (sampleIdx >= 0) {
+          newScanners[scannerIdx].samples[sampleIdx] = sample;
+        } else {
+          newScanners[scannerIdx].samples.push(sample);
+        }
+      }
+    }
 
-    // setScanners(newScanners);
+    setScanners(newScanners);
 
     updateLoading([], ['newSamples']);
   };
